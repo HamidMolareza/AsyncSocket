@@ -4,9 +4,12 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
+// This template use base socket syntax to change Pattern. (like Send, Receive, and so on)
+// Convert to Task-based Asynchronous Pattern. (TAP)
+
 namespace AsynchronousClient
 {
-    public static class Program
+    public static class Template2
     {
         public static void Main()
         {
@@ -26,7 +29,7 @@ namespace AsynchronousClient
             const int port = 443; //Default HTTPS port. (80 for HTTP)
 
             // Establish the remote endpoint for the socket.  
-            IPHostEntry ipHostInfo = Dns.GetHostEntry("Input your host name or address");
+            IPHostEntry ipHostInfo = Dns.GetHostEntry("Input your host name or address.");
             IPAddress ipAddress = ipHostInfo.AddressList[0];
             IPEndPoint remoteEndPoint = new IPEndPoint(ipAddress, port);
 
@@ -35,7 +38,12 @@ namespace AsynchronousClient
                 SocketType.Stream, ProtocolType.Tcp);
 
             // Connect to the remote endpoint.  
-            await client.ConnectAsync(remoteEndPoint).ConfigureAwait(false);
+            var isConnect = await client.ConnectAsync(remoteEndPoint).ConfigureAwait(false);
+            if (!isConnect)
+            {
+                Console.WriteLine("Can not connect.");
+                return;
+            }
 
             // Send test data to the remote device. 
             var bytesSent = await client.SendAsync("This is a test<EOF>").ConfigureAwait(false);
@@ -52,82 +60,76 @@ namespace AsynchronousClient
             client.Close();
         }
 
-        private static Task ConnectAsync(this Socket client, IPEndPoint remoteEndPoint)
+        private static Task<bool> ConnectAsync(this Socket client, IPEndPoint remoteEndPoint)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (remoteEndPoint == null) throw new ArgumentNullException(nameof(remoteEndPoint));
 
-            return Task.Factory.FromAsync(client.BeginConnect,
-                                      client.EndConnect, remoteEndPoint, null);
+            return Task.FromResult(Connect(client, remoteEndPoint));
         }
 
-        private static async Task<string> ReceiveAsync(this Socket client)
+        private static bool Connect(this Socket client, EndPoint remoteEndPoint)
+        {
+            if (client == null || remoteEndPoint == null)
+                return false;
+
+            try
+            {
+                client.Connect(remoteEndPoint);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static async Task<string> ReceiveAsync(this Socket client, int waitForFirstDelaySeconds = 3)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
+
+            // Timeout for wait to receive and prepare data.
+            for (var i = 0; i < waitForFirstDelaySeconds; i++)
+            {
+                if (client.Available > 0)
+                    break;
+                await Task.Delay(1000).ConfigureAwait(false);
+            }
+
+            // return null If data is not available.
+            if (client.Available < 1)
+                return null;
 
             // Size of receive buffer.
             const int bufferSize = 1024;
             var buffer = new byte[bufferSize];
 
+            // Get data
             var response = new StringBuilder(bufferSize);
-
-            var taskCompletion = new TaskCompletionSource<int>();
             do
             {
                 var size = Math.Min(bufferSize, client.Available);
-                client.BeginReceive(buffer, 0, size, SocketFlags.None, iar =>
-                {
-                    try
-                    {
-                        taskCompletion.TrySetResult(client.EndReceive(iar));
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        taskCompletion.TrySetCanceled();
-                    }
-                    catch (Exception exc)
-                    {
-                        taskCompletion.TrySetException(exc);
-                    }
-                }, null);
-
-                await taskCompletion.Task;
+                await Task.FromResult(client.Receive(buffer)).ConfigureAwait(false);
                 response.Append(Encoding.ASCII.GetString(buffer, 0, size));
 
             } while (client.Available > 0);
 
+            // Return result.
             return response.ToString();
         }
 
-        private static async Task<int> SendAsync(this Socket client, String data)
+        private static async Task<int> SendAsync(this Socket client, string data)
         {
             var byteData = Encoding.ASCII.GetBytes(data);
             return await SendAsync(client, byteData, 0, byteData.Length, 0).ConfigureAwait(false);
         }
 
-        public static Task<int> SendAsync(this Socket client, byte[] buffer, int offset,
-                                  int size, SocketFlags socketFlags)
+        private static Task<int> SendAsync(this Socket client, byte[] buffer, int offset,
+            int size, SocketFlags socketFlags)
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
 
-            var tcs = new TaskCompletionSource<int>();
-            client.BeginSend(buffer, offset, size, socketFlags, iar =>
-            {
-                try
-                {
-                    tcs.TrySetResult(client.EndSend(iar));
-                }
-                catch (OperationCanceledException)
-                {
-                    tcs.TrySetCanceled();
-                }
-                catch (Exception exc)
-                {
-                    tcs.TrySetException(exc);
-                }
-            }, null);
-
-            return tcs.Task;
+            return Task.FromResult(client.Send(buffer, offset, size, socketFlags));
         }
     }
 }
