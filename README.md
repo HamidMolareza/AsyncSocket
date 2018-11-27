@@ -9,6 +9,13 @@ The application sends a string to the server and then displays the string return
 This source is based on the Microsoft site example. Microsoft example is written based on the old IAsyncResult pattern.
 But this source is rewritten according to the **Task-based Asynchronous Pattern**. (TAP)
 
+# Two Template
+I use two template source for rewrite old pattern to Task-based Asynchronous Pattern.
+
+**Template1:** use Begin* and End* methods to change Pattern.
+
+**Template2:** use **base socket methods** to change Pattern. (like Send, Receive, and so on)
+
 # See Also
 [Microsoft Example](https://docs.microsoft.com/en-us/dotnet/framework/network-programming/asynchronous-client-socket-example)
 
