@@ -65,7 +65,7 @@ namespace AsynchronousClient
             if (client == null) throw new ArgumentNullException(nameof(client));
             if (remoteEndPoint == null) throw new ArgumentNullException(nameof(remoteEndPoint));
 
-            return Task.FromResult(Connect(client, remoteEndPoint));
+            return Task.Run(() => Connect(client, remoteEndPoint));
         }
 
         private static bool Connect(this Socket client, EndPoint remoteEndPoint)
@@ -109,7 +109,7 @@ namespace AsynchronousClient
             do
             {
                 var size = Math.Min(bufferSize, client.Available);
-                await Task.FromResult(client.Receive(buffer)).ConfigureAwait(false);
+                await Task.Run(() => client.Receive(buffer)).ConfigureAwait(false);
                 response.Append(Encoding.ASCII.GetString(buffer, 0, size));
 
             } while (client.Available > 0);
@@ -129,7 +129,7 @@ namespace AsynchronousClient
         {
             if (client == null) throw new ArgumentNullException(nameof(client));
 
-            return Task.FromResult(client.Send(buffer, offset, size, socketFlags));
+            return Task.Run(() => client.Send(buffer, offset, size, socketFlags));
         }
     }
 }
