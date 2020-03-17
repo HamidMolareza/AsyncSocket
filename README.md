@@ -1,9 +1,9 @@
 # Asynchronous Client Socket Example
 
-The following example program creates a **client** that connects to a server.
-The client is built with an **asynchronous** socket,
-so execution of the client application is not suspended while the server returns a response.
-The application sends a string to the server and then displays the string returned by the server on the console.
+The following example is a **client** program that connects to a server.
+The client is an **asynchronous** socket,
+so execution of the client is not suspended while the server returns a response.
+The program sends a string to the server and then displays string returned by the server.
 
 # Reference
 This source is based on the Microsoft site example. Microsoft example is written based on the old IAsyncResult pattern.
@@ -12,9 +12,9 @@ But this source is rewritten according to the **Task-based Asynchronous Pattern*
 # Two Template
 I use two template source for rewrite old pattern to Task-based Asynchronous Pattern.
 
-**Template1:** use Begin* and End* methods to change Pattern.
+**Template1:** use **Begin*** and **End*** methods to change Pattern. **(Recommended)**
 
-**Template2:** use **base socket methods** to change Pattern. (like Send, Receive, and so on)
+**Template2:** use base socket methods to change Pattern (like Send, Receive, ...) and use **Task.Run**.
 
 # See Also
 [Microsoft Example](https://docs.microsoft.com/en-us/dotnet/framework/network-programming/asynchronous-client-socket-example)
