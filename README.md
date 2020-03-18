@@ -1,4 +1,4 @@
-# Asynchronous Client Socket Example
+# Asynchronous Client Socket
 
 The following example is a **client** program that connects to a server.
 The client is an **asynchronous** socket,
@@ -9,8 +9,8 @@ The program sends a string to the server and then displays string returned by th
 This source is based on the Microsoft site example. Microsoft example is written based on the old IAsyncResult pattern.
 But this source is rewritten according to the **Task-based Asynchronous Pattern**. (TAP)
 
-## Two Template
-I use two template source for rewrite old pattern to Task-based Asynchronous Pattern.
+## Two Templates
+I use two templates source for rewrite old pattern to Task-based Asynchronous Pattern.
 
 **Template1:** use **Begin*** and **End*** methods to change Pattern. **(Recommended)**
 
@@ -24,10 +24,10 @@ I use two template source for rewrite old pattern to Task-based Asynchronous Pat
 [Interop with Other Asynchronous Patterns and Types](https://docs.microsoft.com/en-us/dotnet/standard/asynchronous-programming-patterns/interop-with-other-asynchronous-patterns-and-types)
 
 ### TODO
+- [x] Config Github
+- [x] Add licence
+- [x] Rewrite testable methods
 - [ ] Add server for testing
 - [ ] Unit Test
 - [ ] Add files structure in readme
-- [ ] Rewrite testable methods
 - [ ] Add versions
-- [ ] Add licence
-- [ ] Config Github
