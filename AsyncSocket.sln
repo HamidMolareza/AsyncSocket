@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsynchronousClient", "AsynchronousClient\AsynchronousClient.csproj", "{82207877-F40D-4410-9114-25A15982D6D9}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncSocket", "AsyncSocket\AsyncSocket.csproj", "{136DDA7C-C837-4A87-A7D0-49E9E03AFC8E}"
 EndProject
 Global
@@ -20,18 +18,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{82207877-F40D-4410-9114-25A15982D6D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Debug|x64.Build.0 = Debug|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Debug|x86.Build.0 = Debug|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Release|x64.ActiveCfg = Release|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Release|x64.Build.0 = Release|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Release|x86.ActiveCfg = Release|Any CPU
-		{82207877-F40D-4410-9114-25A15982D6D9}.Release|x86.Build.0 = Release|Any CPU
 		{136DDA7C-C837-4A87-A7D0-49E9E03AFC8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{136DDA7C-C837-4A87-A7D0-49E9E03AFC8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{136DDA7C-C837-4A87-A7D0-49E9E03AFC8E}.Debug|x64.ActiveCfg = Debug|Any CPU
