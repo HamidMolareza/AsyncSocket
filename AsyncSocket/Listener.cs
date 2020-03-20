@@ -48,8 +48,9 @@ namespace AsyncSocket {
             if (IsListenerActive)
                 throw new Exception ("The listener is active. Please stop the listener first.");
 
-            Port = port;
-            NumOfThreads = numOfThreads;
+            _port = port;
+            _numOfThreads = numOfThreads;
+            _backlog = backlog;
             LocalEndPoint = new IPEndPoint (IpAddress, Port);
             CreateTcpIpListener (backlog);
         }
@@ -70,7 +71,7 @@ namespace AsyncSocket {
 
             IsListenerActive = true;
             for (var i = 0; i < NumOfThreads; i++)
-                _ = Task.Run (StartListeningAsync);
+                Task.Run (StartListeningAsync);
         }
 
         public abstract Task HandlerAsync (Socket handler, string data);

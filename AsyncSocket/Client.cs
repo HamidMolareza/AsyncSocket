@@ -8,7 +8,7 @@ namespace AsyncSocket {
         private string _hostEntry;
         public string HostEntry {
             get => _hostEntry;
-            set { SetHostEntryAndPort (value, Port); }
+            set => SetHostEntryAndPort (value, Port);
         }
 
         private int _port;
@@ -45,7 +45,7 @@ namespace AsyncSocket {
                 SocketType.Stream, ProtocolType.Tcp);
 
             _hostEntry = hostNameOrAddress;
-
+            _port = port;
         }
 
         public async Task SendAsync (string message, Encoding encoding, double receiveTimeout = 5000) {
@@ -58,8 +58,6 @@ namespace AsyncSocket {
 
                 // Receive the response from the remote device. 
                 await BaseSocket.ReceiveAsync (ClientSocket, encoding, receiveTimeout);
-            } catch (System.Exception) {
-                throw;
             } finally {
                 // Release the socket.  
                 ClientSocket.Shutdown (SocketShutdown.Both);

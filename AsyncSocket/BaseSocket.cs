@@ -23,11 +23,11 @@ namespace AsyncSocket {
                 socket.EndConnect, address, port, null);
         }
 
-        public static Task ConnectAsync (Socket socket, EndPoint remoteEP) {
+        public static Task ConnectAsync (Socket socket, EndPoint remoteEp) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
             return Task.Factory.FromAsync (socket.BeginConnect,
-                socket.EndConnect, remoteEP, null);
+                socket.EndConnect, remoteEp, null);
         }
 
         public static Task ConnectAsync (Socket socket, IPAddress[] addresses, int port) {
@@ -152,11 +152,11 @@ namespace AsyncSocket {
         #endregion
 
         #region SendToAsync
-        public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, EndPoint remoteEP) {
+        public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, EndPoint remoteEp) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
             var tcs = new TaskCompletionSource<int> ();
-            socket.BeginSendTo (buffer, offset, size, socketFlags, remoteEP, iar => {
+            socket.BeginSendTo (buffer, offset, size, socketFlags, remoteEp, iar => {
                 try {
                     tcs.TrySetResult (socket.EndSendTo (iar));
                 } catch (OperationCanceledException) {
@@ -185,7 +185,7 @@ namespace AsyncSocket {
             stopWatch.Start ();
 
             while (true) {
-                var firstLength = data?.Length ?? 0;
+                var firstLength = data.Length;
                 var bytes = new byte[defaultCapacity];
                 var bytesRec = await ReceiveAsync (socket, bytes, firstLength, defaultCapacity, socketFlags);
                 data.Append (encoding.GetString (bytes, 0, bytesRec));
