@@ -165,6 +165,20 @@ namespace AsyncSocket {
 
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, null);
         }
+
+        public static Task<Socket> AcceptAsync (Socket socket, int receiveSize) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, receiveSize, null);
+        }
+
+        public static Task<Socket> AcceptAsync (Socket socket, Socket acceptSocket, int receiveSize) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, acceptSocket, receiveSize, null);
+        }
         #endregion
 
         #region DisconnectAsync
