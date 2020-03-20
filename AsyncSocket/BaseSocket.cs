@@ -25,18 +25,21 @@ namespace AsyncSocket {
 
         public static Task ConnectAsync (Socket socket, EndPoint remoteEP) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
+
             return Task.Factory.FromAsync (socket.BeginConnect,
                 socket.EndConnect, remoteEP, null);
         }
 
         public static Task ConnectAsync (Socket socket, IPAddress[] addresses, int port) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
+
             return Task.Factory.FromAsync (socket.BeginConnect,
                 socket.EndConnect, addresses, port, null);
         }
 
         public static Task ConnectAsync (Socket socket, string host, int port) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
+
             return Task.Factory.FromAsync (socket.BeginConnect,
                 socket.EndConnect, host, port, null);
         }
@@ -169,7 +172,7 @@ namespace AsyncSocket {
         #endregion
 
         #region ReceiveAsync
-        public static async Task<string> ReceiveAsync (Socket socket, SocketFlags socketFlags = SocketFlags.None, double timeout = 5000) {
+        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, SocketFlags socketFlags = SocketFlags.None, double timeout = 5000) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (timeout < 1)
@@ -186,7 +189,7 @@ namespace AsyncSocket {
                 var firstLength = data?.Length ?? 0;
                 var bytes = new byte[defaultCapacity];
                 var bytesRec = await ReceiveAsync (socket, bytes, firstLength, defaultCapacity, socketFlags);
-                data.Append (Encoding.UTF8.GetString (bytes, 0, bytesRec));
+                data.Append (encoding.GetString (bytes, 0, bytesRec));
 
                 if (socket.Available == 0) //Receive all bytes....
                     return data.ToString ();
@@ -274,7 +277,7 @@ namespace AsyncSocket {
 
         #endregion
 
-        #region ReceiveFrom
+        #region ReceiveFromAsync
         public static Task<int> ReceiveFromAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, ref EndPoint remoteEP) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
