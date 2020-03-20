@@ -277,44 +277,6 @@ namespace AsyncSocket {
 
         #endregion
 
-        #region ReceiveFromAsync
-        public static Task<int> ReceiveFromAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, ref EndPoint remoteEP) {
-            if (socket == null)
-                throw new ArgumentNullException (nameof (socket));
-
-            var tcs = new TaskCompletionSource<int> ();
-            socket.BeginReceiveFrom (buffer, offset, size, socketFlags, ref remoteEP, iar => {
-                try {
-                    tcs.TrySetResult (socket.EndReceive (iar));
-                } catch (OperationCanceledException) {
-                    tcs.TrySetCanceled ();
-                } catch (Exception exc) {
-                    tcs.TrySetException (exc);
-                }
-            }, null);
-            return tcs.Task;
-        }
-
-        #endregion
-
-        #region ReceiveMessageFrom
-        public static Task<int> ReceiveMessageFromAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, ref EndPoint remoteEP) {
-            if (socket == null)
-                throw new ArgumentNullException (nameof (socket));
-
-            var tcs = new TaskCompletionSource<int> ();
-            socket.BeginReceiveMessageFrom (buffer, offset, size, socketFlags, ref remoteEP, iar => {
-                try {
-                    tcs.TrySetResult (socket.EndReceive (iar));
-                } catch (OperationCanceledException) {
-                    tcs.TrySetCanceled ();
-                } catch (Exception exc) {
-                    tcs.TrySetException (exc);
-                }
-            }, null);
-            return tcs.Task;
-        }
-
         #endregion
 
         #region AcceptAsync
