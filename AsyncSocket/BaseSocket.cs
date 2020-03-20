@@ -43,9 +43,9 @@ namespace AsyncSocket {
         #endregion
 
         #region SendAsync
-        public static async Task<int> SendAsync (Socket socket, String data) {
-            var byteData = Encoding.ASCII.GetBytes (data);
-            return await SendAsync (socket, byteData, 0, byteData.Length, 0);
+        public static async Task<int> SendAsync (Socket socket, String data, Encoding encoding, SocketFlags socketFlags) {
+            var byteData = encoding.GetBytes (data);
+            return await SendAsync (socket, byteData, 0, byteData.Length, socketFlags);
         }
 
         public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
@@ -117,6 +117,25 @@ namespace AsyncSocket {
                 if (data.Length - firstLength <= 0 && stopWatch.Elapsed.TotalMilliseconds > timeout)
                     throw new TimeoutException ();
             }
+        }
+
+        private static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+            if (buffer == null)
+                throw new ArgumentNullException (nameof (buffer));
+
+            var tcs = new TaskCompletionSource<int> ();
+            socket.BeginReceive (buffer, offset, size, SocketFlags.None, iar => {
+                try {
+                    tcs.TrySetResult (socket.EndReceive (iar));
+                } catch (OperationCanceledException) {
+                    tcs.TrySetCanceled ();
+                } catch (Exception exc) {
+                    tcs.TrySetException (exc);
+                }
+            }, null);
+            return tcs.Task;
         }
 
         private static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size) {
