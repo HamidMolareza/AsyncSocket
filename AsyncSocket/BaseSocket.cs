@@ -277,8 +277,6 @@ namespace AsyncSocket {
 
         #endregion
 
-        #endregion
-
         #region AcceptAsync
         public static Task<Socket> AcceptAsync (Socket socket) {
             if (socket == null)
