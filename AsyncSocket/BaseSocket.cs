@@ -44,6 +44,8 @@ namespace AsyncSocket {
 
         #region SendAsync
         public static async Task<int> SendAsync (Socket socket, String data, Encoding encoding, SocketFlags socketFlags) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+
             var byteData = encoding.GetBytes (data);
             return await SendAsync (socket, byteData, 0, byteData.Length, socketFlags);
         }
@@ -85,13 +87,14 @@ namespace AsyncSocket {
         #endregion
 
         #region ReceiveAsync
-        private static async Task<string> ReceiveAsync (Socket handler, double timeout = 5000) {
-            if (handler == null)
-                throw new ArgumentNullException (nameof (handler));
+        public static async Task<string> ReceiveAsync (Socket socket, SocketFlags socketFlags = SocketFlags.None, double timeout = 5000) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
             if (timeout < 1)
                 throw new ArgumentException (nameof (timeout) + "Can not less than 1ms.");
 
-            string data = null;
+            const int defaultCapacity = 3072; //3MB
+            var data = new StringBuilder (defaultCapacity);
 
             //For timeout....
             var stopWatch = new Stopwatch ();
@@ -99,12 +102,12 @@ namespace AsyncSocket {
 
             while (true) {
                 var firstLength = data?.Length ?? 0;
-                var bytes = new byte[3072];
-                var bytesRec = await ReceiveAsync (handler, bytes, firstLength, 3072);
-                data += Encoding.UTF8.GetString (bytes, 0, bytesRec);
+                var bytes = new byte[defaultCapacity];
+                var bytesRec = await ReceiveAsync (socket, bytes, firstLength, defaultCapacity, socketFlags);
+                data.Append (Encoding.UTF8.GetString (bytes, 0, bytesRec));
 
-                if (handler.Available == 0) //Receive all bytes....
-                    return data;
+                if (socket.Available == 0) //Receive all bytes....
+                    return data.ToString ();
 
                 switch (data.Length) {
                     case 0 when stopWatch.Elapsed.TotalMilliseconds > timeout:
@@ -119,14 +122,12 @@ namespace AsyncSocket {
             }
         }
 
-        private static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size) {
+        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
-            if (buffer == null)
-                throw new ArgumentNullException (nameof (buffer));
 
             var tcs = new TaskCompletionSource<int> ();
-            socket.BeginReceive (buffer, offset, size, SocketFlags.None, iar => {
+            socket.BeginReceive (buffer, offset, size, socketFlags, iar => {
                 try {
                     tcs.TrySetResult (socket.EndReceive (iar));
                 } catch (OperationCanceledException) {
@@ -138,14 +139,12 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
-        private static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size) {
+        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
-            if (buffer == null)
-                throw new ArgumentNullException (nameof (buffer));
 
             var tcs = new TaskCompletionSource<int> ();
-            socket.BeginReceive (buffer, offset, size, SocketFlags.None, iar => {
+            socket.BeginReceive (buffers, socketFlags, iar => {
                 try {
                     tcs.TrySetResult (socket.EndReceive (iar));
                 } catch (OperationCanceledException) {
@@ -160,7 +159,7 @@ namespace AsyncSocket {
         #endregion
 
         #region AcceptAsync
-        private static Task<Socket> AcceptAsync (Socket socket) {
+        public static Task<Socket> AcceptAsync (Socket socket) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
