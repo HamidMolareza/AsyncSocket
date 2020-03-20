@@ -86,6 +86,34 @@ namespace AsyncSocket {
         }
         #endregion
 
+        #region SendFileAsync
+        public static Task SendFileAsync (Socket socket, string fileName) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            return Task.Factory.FromAsync (socket.BeginSendFile, socket.EndSendFile, fileName, null);
+        }
+
+        public static Task<bool> SendFileAsync (Socket socket, string fileName, byte[] preBuffer, byte[] postBuffer, TransmitFileOptions flags) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+
+            var tcs = new TaskCompletionSource<bool> ();
+            socket.BeginSendFile (fileName, preBuffer, postBuffer, flags, iar => {
+                try {
+                    socket.EndSendFile (iar);
+                    tcs.TrySetResult (true);
+                } catch (OperationCanceledException) {
+                    tcs.TrySetCanceled ();
+                } catch (Exception exc) {
+                    tcs.TrySetException (exc);
+                }
+            }, null);
+
+            return tcs.Task;
+        }
+
+        #endregion
+
         #region ReceiveAsync
         public static async Task<string> ReceiveAsync (Socket socket, SocketFlags socketFlags = SocketFlags.None, double timeout = 5000) {
             if (socket == null)
