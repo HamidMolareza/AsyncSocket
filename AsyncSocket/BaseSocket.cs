@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AsyncSocket {
-    public class BaseSocket {
+    public static class BaseSocket {
         #region ConnectAsync
         public static Task ConnectAsync (Socket socket, IPEndPoint remoteEndPoint) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
