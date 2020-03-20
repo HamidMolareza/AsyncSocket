@@ -7,14 +7,41 @@ using System.Threading.Tasks;
 
 namespace AsyncSocket {
     public class BaseSocket {
+        #region ConnectAsync
         public static Task ConnectAsync (Socket socket, IPEndPoint remoteEndPoint) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
-            if (remoteEndPoint == null) throw new ArgumentNullException (nameof (remoteEndPoint));
 
             return Task.Factory.FromAsync (socket.BeginConnect,
                 socket.EndConnect, remoteEndPoint, null);
         }
 
+        public static Task ConnectAsync (Socket socket, IPAddress address, int port) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+
+            return Task.Factory.FromAsync (socket.BeginConnect,
+                socket.EndConnect, address, port, null);
+        }
+
+        public static Task ConnectAsync (Socket socket, EndPoint remoteEP) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+            return Task.Factory.FromAsync (socket.BeginConnect,
+                socket.EndConnect, remoteEP, null);
+        }
+
+        public static Task ConnectAsync (Socket socket, IPAddress[] addresses, int port) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+            return Task.Factory.FromAsync (socket.BeginConnect,
+                socket.EndConnect, addresses, port, null);
+        }
+
+        public static Task ConnectAsync (Socket socket, string host, int port) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+            return Task.Factory.FromAsync (socket.BeginConnect,
+                socket.EndConnect, host, port, null);
+        }
+        #endregion
+
+        #region SendAsync
         public static async Task<int> SendAsync (Socket socket, String data) {
             var byteData = Encoding.ASCII.GetBytes (data);
             return await SendAsync (socket, byteData, 0, byteData.Length, 0);
@@ -37,7 +64,9 @@ namespace AsyncSocket {
 
             return tcs.Task;
         }
+        #endregion
 
+        #region ReceiveAsync
         private static async Task<string> ReceiveAsync (Socket handler, double timeout = 5000) {
             if (handler == null)
                 throw new ArgumentNullException (nameof (handler));
@@ -91,18 +120,25 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        #endregion
+
+        #region AcceptAsync
         private static Task<Socket> AcceptAsync (Socket socket) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, null);
         }
+        #endregion
 
+        #region DisconnectAsync
         public static Task DisconnectAsync (Socket socket, bool reuseSocket) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
             return Task.Factory.FromAsync (socket.BeginDisconnect, socket.EndDisconnect, reuseSocket, null);
         }
+
+        #endregion
     }
 }
