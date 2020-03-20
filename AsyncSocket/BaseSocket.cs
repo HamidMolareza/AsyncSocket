@@ -171,7 +171,7 @@ namespace AsyncSocket {
         #endregion
 
         #region ReceiveAsync
-        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, SocketFlags socketFlags = SocketFlags.None, double timeout = 5000) {
+        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, double timeout = 5000, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (timeout < 1)
