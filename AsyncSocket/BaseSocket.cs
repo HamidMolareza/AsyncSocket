@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -53,6 +54,23 @@ namespace AsyncSocket {
 
             var tcs = new TaskCompletionSource<int> ();
             socket.BeginSend (buffer, offset, size, socketFlags, iar => {
+                try {
+                    tcs.TrySetResult (socket.EndSend (iar));
+                } catch (OperationCanceledException) {
+                    tcs.TrySetCanceled ();
+                } catch (Exception exc) {
+                    tcs.TrySetException (exc);
+                }
+            }, null);
+
+            return tcs.Task;
+        }
+
+        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+
+            var tcs = new TaskCompletionSource<int> ();
+            socket.BeginSend (buffers, socketFlags, iar => {
                 try {
                     tcs.TrySetResult (socket.EndSend (iar));
                 } catch (OperationCanceledException) {
