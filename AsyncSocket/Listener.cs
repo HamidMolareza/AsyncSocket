@@ -1,26 +1,53 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace AsyncSocket {
     public abstract class Listener {
-        public bool IsServerActive { get; private set; }
+        public bool IsListenerActive { get; private set; }
 
-        public int Port { get; }
+        private int _port;
 
-        public int NumOfThreads { get; }
+        /// <summary>
+        /// The port number for the remote device. (Http: 80, HTTPS: 443)
+        /// </summary>
+        public int Port {
+            get => _port;
+            set => InitProperties (value, NumOfThreads, Backlog);
+        }
 
-        public IPEndPoint LocalEndPoint { get; }
+        private int _backlog;
+        public int Backlog {
+            get => _backlog;
+            set => InitProperties (Port, NumOfThreads, value);
+        }
+
+        private int _numOfThreads;
+
+        public int NumOfThreads {
+            get => _numOfThreads;
+            set => InitProperties (Port, value, Backlog);
+        }
+
+        public IPEndPoint LocalEndPoint { get; private set; }
 
         public static readonly IPHostEntry IpHostInfo = Dns.GetHostEntry (Dns.GetHostName ());
 
         public static readonly IPAddress IpAddress = IpHostInfo.AddressList.Length > 3 ?
             IpHostInfo.AddressList[2] : IpHostInfo.AddressList[1];
 
-        private Socket listener { get; set; }
+        public Socket ListenerSocket { get; private set; }
 
         protected Listener (int port = 11000, int numOfThreads = 25, int backlog = 100) {
+            InitProperties (port, numOfThreads, backlog);
+        }
+
+        private void InitProperties (int port, int numOfThreads, int backlog) {
+            if (IsListenerActive)
+                throw new Exception ("The listener is active. Please stop the listener first.");
+
             Port = port;
             NumOfThreads = numOfThreads;
             LocalEndPoint = new IPEndPoint (IpAddress, Port);
@@ -29,35 +56,37 @@ namespace AsyncSocket {
 
         private void CreateTcpIpListener (int backlog = 100) {
             // Create a TCP/IP socket.  
-            listener = new Socket (IpAddress.AddressFamily,
+            ListenerSocket = new Socket (IpAddress.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp);
 
             // Bind the socket to the local endpoint and listen for incoming connections.  
-            listener.Bind (LocalEndPoint);
-            listener.Listen (backlog);
+            ListenerSocket.Bind (LocalEndPoint);
+            ListenerSocket.Listen (backlog);
         }
 
         public void Start () {
-            if (IsServerActive)
+            if (IsListenerActive)
                 return;
 
-            IsServerActive = true;
+            IsListenerActive = true;
             for (var i = 0; i < NumOfThreads; i++)
                 _ = Task.Run (StartListeningAsync);
         }
 
+        public abstract Task HandlerAsync (Socket handler, string data);
+
         private async Task StartListeningAsync () {
             Socket socket = null;
-            while (IsServerActive) {
+
+            while (IsListenerActive) {
                 try {
-                    socket = await Accept (listener);
-                    var data = await GetDataAsync (socket);
+                    socket = await BaseSocket.AcceptAsync (ListenerSocket);
+                    var data = await BaseSocket.ReceiveAsync (socket, Encoding.UTF32);
                     await HandlerAsync (socket, data);
-                } catch (TimeoutException t) {
-                    //Use Dependency Inversion/Injection for remove simpleLog.
-                    SimpleLog.Append (t);
-                } catch (Exception e) {
-                    SimpleLog.Append (e);
+                } catch (TimeoutException) {
+                    //TODO: Use Dependency Inversion/Injection for logging.
+                } catch (Exception) {
+                    //TODO: Use Dependency Inversion/Injection for logging.
                 } finally {
                     if (socket != null) {
                         socket.Shutdown (SocketShutdown.Both);
@@ -67,28 +96,27 @@ namespace AsyncSocket {
             }
         }
 
-        public abstract Task HandlerAsync (Socket handler, string data);
-
         public async Task StopAsync () {
-            if (!IsServerActive)
+            if (!IsListenerActive)
                 return;
 
-            IsServerActive = false;
+            IsListenerActive = false;
             await ForceCloseServerAsync ();
         }
 
         private async Task ForceCloseServerAsync () {
-            IsServerActive = false;
+            IsListenerActive = false;
             var counter = 0;
             const int limit = 2;
 
             do {
                 Socket sender = null;
                 try {
+                    //TODO: Use client class
                     sender = new Socket (IpAddress.AddressFamily,
                         SocketType.Stream, ProtocolType.Tcp);
                     // Connect the socket to the remote endpoint.
-                    await ConnectAsync (sender, LocalEndPoint);
+                    await BaseSocket.ConnectAsync (sender, LocalEndPoint);
                     counter = 0;
                 } catch (Exception) {
                     counter++;
