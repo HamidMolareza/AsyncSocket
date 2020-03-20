@@ -1,34 +1,70 @@
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace AsyncSocket {
     public class Client {
-        public static async Task StartClientAsync () {
-            // The port number for the remote device.  
-            const int port = 443; //Default HTTPS port. (80 for HTTP)
+        private string _hostEntry;
+        public string HostEntry {
+            get => _hostEntry;
+            set { SetHostEntryAndPort (value, Port); }
+        }
 
+        private int _port;
+
+        /// <summary>
+        /// The port number for the remote device. (Http: 80, HTTPS: 443)
+        /// </summary>
+        public int Port {
+            get => _port;
+            set => SetHostEntryAndPort (HostEntry, value);
+        }
+
+        public IPHostEntry IpHost { get; private set; }
+
+        public IPAddress IpAddress { get; private set; }
+
+        public IPEndPoint RemoteEndPoint { get; private set; }
+
+        public Socket ClientSocket { get; private set; }
+
+        public Client (string hostNameOrAddress, int port) {
+            SetHostEntryAndPort (hostNameOrAddress, port);
+        }
+
+        private void SetHostEntryAndPort (string hostNameOrAddress, int port) {
             // Establish the remote endpoint for the socket.  
-            IPHostEntry ipHostInfo = Dns.GetHostEntry ("Input your host name or address");
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint remoteEndPoint = new IPEndPoint (ipAddress, port);
+            IpHost = Dns.GetHostEntry (hostNameOrAddress);
+
+            IpAddress = IpHost.AddressList[0];
+            RemoteEndPoint = new IPEndPoint (IpAddress, port);
 
             // Create a TCP/IP socket.  
-            var client = new Socket (ipAddress.AddressFamily,
+            ClientSocket = new Socket (IpAddress.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp);
 
+            _hostEntry = hostNameOrAddress;
+
+        }
+
+        public async Task SendAsync (string message, Encoding encoding, double receiveTimeout = 5000) {
             // Connect to the remote endpoint.  
-            await client.ConnectAsync (remoteEndPoint).ConfigureAwait (false);
+            await BaseSocket.ConnectAsync (ClientSocket, RemoteEndPoint);
 
-            // Send test data to the remote device. 
-            var bytesSent = await client.SendAsync ("This is a test<EOF>").ConfigureAwait (false);
-            Console.WriteLine ("Sent {0} bytes to server.", bytesSent);
+            try {
+                // Send data to the remote device. 
+                await BaseSocket.SendAsync (ClientSocket, message, encoding, SocketFlags.None);
 
-            // Receive the response from the remote device.  
-            var response = await client.ReceiveAsync ().ConfigureAwait (false);
-
-            // Write the response to the console.  
-            Console.WriteLine ("Response received : {0}", response);
-
-            // Release the socket.  
-            client.Shutdown (SocketShutdown.Both);
-            client.Close ();
+                // Receive the response from the remote device. 
+                await BaseSocket.ReceiveAsync (ClientSocket, encoding, receiveTimeout);
+            } catch (System.Exception) {
+                throw;
+            } finally {
+                // Release the socket.  
+                ClientSocket.Shutdown (SocketShutdown.Both);
+                ClientSocket.Close ();
+            }
         }
     }
 }
