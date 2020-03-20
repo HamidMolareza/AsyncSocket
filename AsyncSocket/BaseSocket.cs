@@ -152,14 +152,13 @@ namespace AsyncSocket {
         #endregion
 
         #region SendToAsync
-        public static Task<bool> SendToAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, EndPoint remoteEP) {
+        public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, EndPoint remoteEP) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
-            var tcs = new TaskCompletionSource<bool> ();
+            var tcs = new TaskCompletionSource<int> ();
             socket.BeginSendTo (buffer, offset, size, socketFlags, remoteEP, iar => {
                 try {
-                    socket.EndSendTo (iar);
-                    tcs.TrySetResult (true);
+                    tcs.TrySetResult (socket.EndSendTo (iar));
                 } catch (OperationCanceledException) {
                     tcs.TrySetCanceled ();
                 } catch (Exception exc) {
@@ -178,7 +177,7 @@ namespace AsyncSocket {
             if (timeout < 1)
                 throw new ArgumentException (nameof (timeout) + "Can not less than 1ms.");
 
-            const int defaultCapacity = 3072; //3MB
+            const int defaultCapacity = 1024; //1MB
             var data = new StringBuilder (defaultCapacity);
 
             //For timeout....
@@ -307,7 +306,6 @@ namespace AsyncSocket {
 
             return Task.Factory.FromAsync (socket.BeginDisconnect, socket.EndDisconnect, reuseSocket, null);
         }
-
         #endregion
     }
 }
