@@ -68,11 +68,45 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, out SocketError errorCode) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+
+            var tcs = new TaskCompletionSource<int> ();
+            socket.BeginSend (buffer, offset, size, socketFlags, out errorCode, iar => {
+                try {
+                    tcs.TrySetResult (socket.EndSend (iar));
+                } catch (OperationCanceledException) {
+                    tcs.TrySetCanceled ();
+                } catch (Exception exc) {
+                    tcs.TrySetException (exc);
+                }
+            }, null);
+
+            return tcs.Task;
+        }
+
         public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
             var tcs = new TaskCompletionSource<int> ();
             socket.BeginSend (buffers, socketFlags, iar => {
+                try {
+                    tcs.TrySetResult (socket.EndSend (iar));
+                } catch (OperationCanceledException) {
+                    tcs.TrySetCanceled ();
+                } catch (Exception exc) {
+                    tcs.TrySetException (exc);
+                }
+            }, null);
+
+            return tcs.Task;
+        }
+
+        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, out SocketError errorCode) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+
+            var tcs = new TaskCompletionSource<int> ();
+            socket.BeginSend (buffers, socketFlags, out errorCode, iar => {
                 try {
                     tcs.TrySetResult (socket.EndSend (iar));
                 } catch (OperationCanceledException) {
@@ -112,6 +146,26 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        #endregion
+
+        #region SendToAsync
+        public static Task<bool> SendToAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, EndPoint remoteEP) {
+            if (socket == null) throw new ArgumentNullException (nameof (socket));
+
+            var tcs = new TaskCompletionSource<bool> ();
+            socket.BeginSendTo (buffer, offset, size, socketFlags, remoteEP, iar => {
+                try {
+                    socket.EndSendTo (iar);
+                    tcs.TrySetResult (true);
+                } catch (OperationCanceledException) {
+                    tcs.TrySetCanceled ();
+                } catch (Exception exc) {
+                    tcs.TrySetException (exc);
+                }
+            }, null);
+
+            return tcs.Task;
+        }
         #endregion
 
         #region ReceiveAsync
@@ -167,12 +221,46 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, out SocketError errorCode) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var tcs = new TaskCompletionSource<int> ();
+            socket.BeginReceive (buffer, offset, size, socketFlags, out errorCode, iar => {
+                try {
+                    tcs.TrySetResult (socket.EndReceive (iar));
+                } catch (OperationCanceledException) {
+                    tcs.TrySetCanceled ();
+                } catch (Exception exc) {
+                    tcs.TrySetException (exc);
+                }
+            }, null);
+            return tcs.Task;
+        }
+
         public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
             var tcs = new TaskCompletionSource<int> ();
             socket.BeginReceive (buffers, socketFlags, iar => {
+                try {
+                    tcs.TrySetResult (socket.EndReceive (iar));
+                } catch (OperationCanceledException) {
+                    tcs.TrySetCanceled ();
+                } catch (Exception exc) {
+                    tcs.TrySetException (exc);
+                }
+            }, null);
+            return tcs.Task;
+        }
+
+        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, out SocketError errorCode) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var tcs = new TaskCompletionSource<int> ();
+            socket.BeginReceive (buffers, socketFlags, out errorCode, iar => {
                 try {
                     tcs.TrySetResult (socket.EndReceive (iar));
                 } catch (OperationCanceledException) {
