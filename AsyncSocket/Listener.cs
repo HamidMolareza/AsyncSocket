@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace AsyncSocket {
     public abstract class Listener {
+        /// <summary>
+        /// True if the listener is active, otherwise false.
+        /// </summary>
         public bool IsListenerActive { get; private set; }
 
         private int _port;
@@ -15,20 +18,19 @@ namespace AsyncSocket {
         /// </summary>
         public int Port {
             get => _port;
-            set => InitProperties (value, NumOfThreads, Backlog);
+            set => InitProperties (value, NumOfThreads);
         }
 
-        private int _backlog;
-        public int Backlog {
-            get => _backlog;
-            set => InitProperties (Port, NumOfThreads, value);
-        }
+        /// <summary>
+        /// The maximum length of the pending connections queue.
+        /// </summary>
+        private int _backlog = 1;
 
         private int _numOfThreads;
 
         public int NumOfThreads {
             get => _numOfThreads;
-            set => InitProperties (Port, value, Backlog);
+            set => InitProperties (Port, value);
         }
 
         public IPEndPoint LocalEndPoint { get; private set; }
@@ -40,29 +42,28 @@ namespace AsyncSocket {
 
         public Socket ListenerSocket { get; private set; }
 
-        protected Listener (int port = 11000, int numOfThreads = 25, int backlog = 100) {
-            InitProperties (port, numOfThreads, backlog);
+        protected Listener (int port = 11000, int numOfThreads = 25) {
+            InitProperties (port, numOfThreads);
         }
 
-        private void InitProperties (int port, int numOfThreads, int backlog) {
+        private void InitProperties (int port, int numOfThreads) {
             if (IsListenerActive)
                 throw new Exception ("The listener is active. Please stop the listener first.");
 
             _port = port;
             _numOfThreads = numOfThreads;
-            _backlog = backlog;
             LocalEndPoint = new IPEndPoint (IpAddress, Port);
-            CreateTcpIpListener (backlog);
+            CreateTcpIpListener ();
         }
 
-        private void CreateTcpIpListener (int backlog = 100) {
+        private void CreateTcpIpListener () {
             // Create a TCP/IP socket.  
             ListenerSocket = new Socket (IpAddress.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp);
 
             // Bind the socket to the local endpoint and listen for incoming connections.  
             ListenerSocket.Bind (LocalEndPoint);
-            ListenerSocket.Listen (backlog);
+            ListenerSocket.Listen (_backlog);
         }
 
         public void Start () {
