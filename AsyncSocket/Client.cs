@@ -47,6 +47,7 @@ namespace AsyncSocket {
 
         #region Ctor
 
+        //TODO: Implement other BaseSocket methods.
         public Client (string hostNameOrAddress, int port) {
             SetHostEntryAndPort (hostNameOrAddress, port);
         }

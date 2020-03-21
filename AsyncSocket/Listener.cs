@@ -4,6 +4,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
+//TODO: Property validation
+
 namespace AsyncSocket {
     public abstract class Listener {
         /// <summary>
@@ -12,13 +14,15 @@ namespace AsyncSocket {
         public bool IsListenerActive { get; private set; }
 
         private int _port;
+        private const int _DefaultPort = 11000;
 
         /// <summary>
         /// The port number for the remote device. (Http: 80, HTTPS: 443)
+        /// To set property, The listener must be stop.
         /// </summary>
         public int Port {
             get => _port;
-            set => InitProperties (value, NumOfThreads);
+            set => InitProperties (value);
         }
 
         /// <summary>
@@ -27,14 +31,41 @@ namespace AsyncSocket {
         private int _backlog = 1;
 
         private int _numOfThreads;
+        private const int _DefaultNumOfThreads = 25;
 
+        /// <summary>
+        /// To set property, The listener must be stop.
+        /// </summary>
         public int NumOfThreads {
             get => _numOfThreads;
-            set => InitProperties (Port, value);
+            set {
+                ListenerMustBeStop ();
+                _numOfThreads = value;
+            }
         }
 
+        private double _receiveTimeout;
+        private const double _DefaultReceiveTimeout = 5000;
+
+        /// <summary>
+        /// To set property, The listener must be stop.
+        /// </summary>
+        public double ReceiveTimeout {
+            get => _receiveTimeout;
+            set {
+                ListenerMustBeStop ();
+                _receiveTimeout = value;
+            }
+        }
+
+        /// <summary>
+        /// A network endpoint as an IP address and a port number.
+        /// </summary>
         public IPEndPoint LocalEndPoint { get; private set; }
 
+        /// <summary>
+        /// An IPHostEntry instance that contains address information about the host specified in address.
+        /// </summary>
         public static readonly IPHostEntry IpHostInfo = Dns.GetHostEntry (Dns.GetHostName ());
 
         public static readonly IPAddress IpAddress = IpHostInfo.AddressList.Length > 3 ?
@@ -42,21 +73,26 @@ namespace AsyncSocket {
 
         public Socket ListenerSocket { get; private set; }
 
-        protected Listener (int port = 11000, int numOfThreads = 25) {
-            InitProperties (port, numOfThreads);
+        protected Listener (int port = _DefaultPort, int numOfThreads = _DefaultNumOfThreads, double receiveTimeout = _DefaultReceiveTimeout) {
+            InitProperties (port);
+            NumOfThreads = numOfThreads;
+            ReceiveTimeout = receiveTimeout;
         }
 
-        private void InitProperties (int port, int numOfThreads) {
+        /// <summary>
+        /// Throw exception if listener is active.
+        /// </summary>
+        /// <exception cref="System.Exception">Throw exception if listener is active.</exception>
+        private void ListenerMustBeStop () {
             if (IsListenerActive)
                 throw new Exception ("The listener is active. Please stop the listener first.");
-
-            _port = port;
-            _numOfThreads = numOfThreads;
-            LocalEndPoint = new IPEndPoint (IpAddress, Port);
-            CreateTcpIpListener ();
         }
 
-        private void CreateTcpIpListener () {
+        private void InitProperties (int port) {
+            ListenerMustBeStop ();
+
+            LocalEndPoint = new IPEndPoint (IpAddress, port);
+
             // Create a TCP/IP socket.  
             ListenerSocket = new Socket (IpAddress.AddressFamily,
                 SocketType.Stream, ProtocolType.Tcp);
@@ -64,8 +100,13 @@ namespace AsyncSocket {
             // Bind the socket to the local endpoint and listen for incoming connections.  
             ListenerSocket.Bind (LocalEndPoint);
             ListenerSocket.Listen (_backlog);
+
+            _port = port;
         }
 
+        /// <summary>
+        /// Start the listener/
+        /// </summary>
         public void Start () {
             if (IsListenerActive)
                 return;
@@ -75,7 +116,26 @@ namespace AsyncSocket {
                 Task.Run (StartListeningAsync);
         }
 
-        public abstract Task HandlerAsync (Socket handler, string data);
+        /// <summary>
+        /// The method that handle requests.
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <param name="data">Request data.</param>
+        public abstract Task MainHandlerAsync (Socket handler, string data);
+
+        /// <summary>
+        /// When the request takes too long, this method will be called.
+        /// </summary>
+        /// <param name="handler">The socket can be null.</param>
+        /// <param name="timeoutException">Exception details.</param>
+        public abstract Task TimeoutExceptionHandler (Socket handler, TimeoutException timeoutException);
+
+        /// <summary>
+        /// When an unknown error occurs, this method will be called.
+        /// </summary>
+        /// <param name="handler">The socket can be null.</param>
+        /// <param name="exception">Exception details.</param>
+        public abstract Task UnknownExceptionHandler (Socket handler, Exception exception);
 
         private async Task StartListeningAsync () {
             Socket socket = null;
@@ -83,12 +143,12 @@ namespace AsyncSocket {
             while (IsListenerActive) {
                 try {
                     socket = await BaseSocket.AcceptAsync (ListenerSocket);
-                    var data = await BaseSocket.ReceiveAsync (socket, Encoding.UTF32);
-                    await HandlerAsync (socket, data);
-                } catch (TimeoutException) {
-                    //TODO: Use Dependency Inversion/Injection for logging.
-                } catch (Exception) {
-                    //TODO: Use Dependency Inversion/Injection for logging.
+                    var data = await BaseSocket.ReceiveAsync (socket, Encoding.UTF32, ReceiveTimeout);
+                    await MainHandlerAsync (socket, data);
+                } catch (TimeoutException te) {
+                    await TimeoutExceptionHandler (socket, te);
+                } catch (Exception e) {
+                    await UnknownExceptionHandler (socket, e);
                 } finally {
                     if (socket != null) {
                         socket.Shutdown (SocketShutdown.Both);
