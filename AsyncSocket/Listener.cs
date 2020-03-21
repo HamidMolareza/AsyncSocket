@@ -14,7 +14,7 @@ namespace AsyncSocket {
         public bool IsListenerActive { get; private set; }
 
         private int _port;
-        private const int _DefaultPort = 11000;
+        private const int DefaultPort = 11000;
 
         /// <summary>
         /// The port number for the remote device. (Http: 80, HTTPS: 443)
@@ -22,16 +22,16 @@ namespace AsyncSocket {
         /// </summary>
         public int Port {
             get => _port;
-            set => InitProperties (value);
+            set => BindToLocalEndPoint (value);
         }
 
         /// <summary>
         /// The maximum length of the pending connections queue.
         /// </summary>
-        private int _backlog = 1;
+        private const int Backlog = 100;
 
         private int _numOfThreads;
-        private const int _DefaultNumOfThreads = 25;
+        private const int DefaultNumOfThreads = 25;
 
         /// <summary>
         /// To set property, The listener must be stop.
@@ -45,7 +45,7 @@ namespace AsyncSocket {
         }
 
         private double _receiveTimeout;
-        private const double _DefaultReceiveTimeout = 5000;
+        private const double DefaultReceiveTimeout = 5000;
 
         /// <summary>
         /// To set property, The listener must be stop.
@@ -71,10 +71,14 @@ namespace AsyncSocket {
         public static readonly IPAddress IpAddress = IpHostInfo.AddressList.Length > 3 ?
             IpHostInfo.AddressList[2] : IpHostInfo.AddressList[1];
 
-        public Socket ListenerSocket { get; private set; }
+        /// <summary>
+        /// TCP/IP socket
+        /// </summary>
+        public readonly Socket ListenerSocket = new Socket(IpAddress.AddressFamily,
+            SocketType.Stream, ProtocolType.Tcp);
 
-        protected Listener (int port = _DefaultPort, int numOfThreads = _DefaultNumOfThreads, double receiveTimeout = _DefaultReceiveTimeout) {
-            InitProperties (port);
+        protected Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, double receiveTimeout = DefaultReceiveTimeout) {
+            BindToLocalEndPoint (port);
             NumOfThreads = numOfThreads;
             ReceiveTimeout = receiveTimeout;
         }
@@ -88,18 +92,16 @@ namespace AsyncSocket {
                 throw new Exception ("The listener is active. Please stop the listener first.");
         }
 
-        private void InitProperties (int port) {
+        private void BindToLocalEndPoint (int port) {
             ListenerMustBeStop ();
 
             LocalEndPoint = new IPEndPoint (IpAddress, port);
 
-            // Create a TCP/IP socket.  
-            ListenerSocket = new Socket (IpAddress.AddressFamily,
-                SocketType.Stream, ProtocolType.Tcp);
-
-            // Bind the socket to the local endpoint and listen for incoming connections.  
+            // Bind the socket to the local endpoint.  
             ListenerSocket.Bind (LocalEndPoint);
-            ListenerSocket.Listen (_backlog);
+
+            //listen for incoming connections
+            ListenerSocket.Listen (Backlog);
 
             _port = port;
         }
@@ -114,6 +116,9 @@ namespace AsyncSocket {
             IsListenerActive = true;
             for (var i = 0; i < NumOfThreads; i++)
                 Task.Run (StartListeningAsync);
+
+            //Delay to ensure all threads is run. 
+            Task.Delay(NumOfThreads).Wait();
         }
 
         /// <summary>
