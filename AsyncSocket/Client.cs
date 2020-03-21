@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -5,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace AsyncSocket {
     public class Client {
+
+        #region Properties
 
         private string _hostEntry;
 
@@ -40,9 +43,15 @@ namespace AsyncSocket {
 
         public Socket ClientSocket { get; private set; }
 
+        #endregion
+
+        #region Ctor
+
         public Client (string hostNameOrAddress, int port) {
             SetHostEntryAndPort (hostNameOrAddress, port);
         }
+
+        #endregion
 
         private void SetHostEntryAndPort (string hostNameOrAddress, int port) {
             // Establish the remote endpoint for the socket.  
@@ -66,7 +75,11 @@ namespace AsyncSocket {
         /// <param name="encoding">Message encoding</param>
         /// <param name="receiveTimeout"></param>
         /// <returns>Response from the remote device.</returns>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when receiveTimeout is less than 1.</exception>
         public async Task<string> SendAsync (string message, Encoding encoding, double receiveTimeout = 5000) {
+            if (receiveTimeout < 1)
+                throw new ArgumentOutOfRangeException (nameof (receiveTimeout) + " must more than zero.");
+
             // Connect to the remote endpoint.  
             await BaseSocket.ConnectAsync (ClientSocket, RemoteEndPoint);
 
