@@ -7,6 +7,9 @@ using AsyncSocket.Exceptions;
 
 namespace AsyncSocket {
     public abstract class Listener {
+
+        #region Properties
+
         /// <summary>
         /// True if the listener is active, otherwise false.
         /// </summary>
@@ -89,38 +92,19 @@ namespace AsyncSocket {
         public readonly Socket ListenerSocket = new Socket (IpAddress.AddressFamily,
             SocketType.Stream, ProtocolType.Tcp);
 
+        #endregion
+
+        #region Ctor
+
         protected Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, double receiveTimeout = DefaultReceiveTimeout) {
             BindToLocalEndPoint (port);
             NumOfThreads = numOfThreads;
             ReceiveTimeout = receiveTimeout;
         }
 
-        /// <summary>
-        /// Throw exception if listener is active.
-        /// </summary>
-        /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
-        private void ListenerMustBeStop () {
-            if (IsListenerActive)
-                throw new ListenerIsActiveException ("The listener is active. Please stop the listener first.");
-        }
+        #endregion
 
-        /// <summary>
-        /// </summary>
-        /// <param name="port"></param>
-        /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
-        private void BindToLocalEndPoint (int port) {
-            ListenerMustBeStop ();
-
-            LocalEndPoint = new IPEndPoint (IpAddress, port);
-
-            // Bind the socket to the local endpoint.  
-            ListenerSocket.Bind (LocalEndPoint);
-
-            //listen for incoming connections
-            ListenerSocket.Listen (Backlog);
-
-            _port = port;
-        }
+        #region Public Methods
 
         /// <summary>
         /// Start the listener.
@@ -158,6 +142,48 @@ namespace AsyncSocket {
         /// <param name="exception">Exception details.</param>
         public abstract Task UnknownExceptionHandler (Socket handler, Exception exception);
 
+        /// <summary>
+        /// Stop the listener.
+        /// </summary>
+        public async Task StopAsync () {
+            if (!IsListenerActive)
+                return;
+
+            IsListenerActive = false;
+            await ForceCloseServerAsync ();
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        /// <summary>
+        /// Throw exception if listener is active.
+        /// </summary>
+        /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
+        private void ListenerMustBeStop () {
+            if (IsListenerActive)
+                throw new ListenerIsActiveException ("The listener is active. Please stop the listener first.");
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <param name="port"></param>
+        /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
+        private void BindToLocalEndPoint (int port) {
+            ListenerMustBeStop ();
+
+            LocalEndPoint = new IPEndPoint (IpAddress, port);
+
+            // Bind the socket to the local endpoint.  
+            ListenerSocket.Bind (LocalEndPoint);
+
+            //listen for incoming connections
+            ListenerSocket.Listen (Backlog);
+
+            _port = port;
+        }
+
         private async Task StartListeningAsync () {
             Socket socket = null;
 
@@ -179,17 +205,10 @@ namespace AsyncSocket {
             }
         }
 
-        /// <summary>
-        /// Stop the listener.
-        /// </summary>
-        public async Task StopAsync () {
-            if (!IsListenerActive)
-                return;
-
-            IsListenerActive = false;
-            await ForceCloseServerAsync ();
-        }
-
+        //TODO: Use client class
+        //TODO: XML
+        //TODO: Functional programming
+        //TODO: Exception handling
         private async Task ForceCloseServerAsync () {
             IsListenerActive = false;
             var counter = 0;
@@ -198,7 +217,6 @@ namespace AsyncSocket {
             do {
                 Socket sender = null;
                 try {
-                    //TODO: Use client class
                     sender = new Socket (IpAddress.AddressFamily,
                         SocketType.Stream, ProtocolType.Tcp);
                     // Connect the socket to the remote endpoint.
@@ -215,5 +233,7 @@ namespace AsyncSocket {
                 }
             } while (counter < limit);
         }
+
+        #endregion
     }
 }
