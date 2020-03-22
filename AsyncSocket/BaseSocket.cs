@@ -1,13 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using AsyncSocket.Utility;
 
 namespace AsyncSocket {
     public static class BaseSocket {
+        private const int DefaultReceiveTimeout = 5000; //ms
+        private const int MinimumReceiveTimeout = 1; //ms
+
         #region ConnectAsync
 
         /// <summary>
@@ -276,42 +282,77 @@ namespace AsyncSocket {
         /// </summary>
         /// <param name="socket"></param>
         /// <param name="encoding">Data encoding</param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <returns>The string of bytes received.</returns>
+        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, SocketFlags socketFlags = SocketFlags.None) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var receiveBytes = await ReceiveAsync (socket, socketFlags);
+
+            return encoding.GetString (receiveBytes);
+        }
+
+        /// <summary>
+        /// Asynchronously receive data from a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="encoding">Data encoding</param>
         /// <param name="timeout"></param>
         /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
         /// <returns>The string of bytes received.</returns>
-        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, double timeout = 5000, SocketFlags socketFlags = SocketFlags.None) {
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, int timeout = DefaultReceiveTimeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
-            if (timeout < 1)
-                throw new ArgumentException (nameof (timeout) + "Can not less than 1ms.");
 
+            var receiveTask = ReceiveAsync (socket, encoding, socketFlags);
+            return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
+        }
+
+        /// <summary>
+        /// Asynchronously receive data from a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <returns>The string of bytes received.</returns>
+        public static async Task<byte[]> ReceiveAsync (Socket socket, SocketFlags socketFlags = SocketFlags.None) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            //Init
             const int defaultCapacity = 1024; //1MB
-            var data = new StringBuilder (defaultCapacity);
+            var data = new MemoryStream (defaultCapacity);
 
-            //For timeout....
-            var stopWatch = new Stopwatch ();
-            stopWatch.Start ();
+            while (socket.Available > 0) {
+                //TODO: Is offser required?
+                // var offset = data.Length;
 
-            while (true) {
-                var firstLength = data.Length;
-                var bytes = new byte[defaultCapacity];
-                var bytesRec = await ReceiveAsync (socket, bytes, firstLength, defaultCapacity, socketFlags);
-                data.Append (encoding.GetString (bytes, 0, bytesRec));
+                var buffer = new byte[defaultCapacity];
 
-                if (socket.Available == 0) //Receive all bytes....
-                    return data.ToString ();
+                //TODO: If offset is required, set offset to method.
+                var bytesRec = await ReceiveAsync (socket, buffer, 0, defaultCapacity, socketFlags);
 
-                switch (data.Length) {
-                    case 0 when stopWatch.Elapsed.TotalMilliseconds > timeout:
-                        throw new TimeoutException ();
-                    case 0:
-                        continue;
-                }
-
-                if (data.Length - firstLength > 0) stopWatch.Restart ();
-                if (data.Length - firstLength <= 0 && stopWatch.Elapsed.TotalMilliseconds > timeout)
-                    throw new TimeoutException ();
+                await data.WriteAsync (buffer, 0, bytesRec);
             }
+
+            return data.ToArray ();
+        }
+
+        /// <summary>
+        /// Asynchronously receive data from a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="timeout"></param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <returns>bytes received</returns>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task<byte[]> ReceiveAsync (Socket socket, int timeout = DefaultReceiveTimeout, SocketFlags socketFlags = SocketFlags.None) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var receiveTask = ReceiveAsync (socket, socketFlags);
+            return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
         }
 
         /// <summary>
@@ -338,6 +379,25 @@ namespace AsyncSocket {
                 }
             }, null);
             return tcs.Task;
+        }
+
+        /// <summary>
+        /// Asynchronously receive data from a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="buffer">An array of type Byte that is the storage location for the received data.</param>
+        /// <param name="offset">The location in buffer to store the received data.</param>
+        /// <param name="size">The number of bytes to receive.</param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <param name="timeout"></param>
+        /// <returns>The number of bytes received.</returns>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, int timeout = DefaultReceiveTimeout) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var receiveTask = ReceiveAsync (socket, buffer, offset, size, socketFlags);
+            return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
         }
 
         /// <summary>
@@ -389,6 +449,24 @@ namespace AsyncSocket {
                 }
             }, null);
             return tcs.Task;
+        }
+
+        /// <summary>
+        /// Asynchronously receive data from a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="buffers">An array of type Byte that is the storage location for the received data.</param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <param name="timeout"></param>
+        /// <returns>The number of bytes received.</returns>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, int timeout = DefaultReceiveTimeout) {
+            //Validation
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var receiveTask = ReceiveAsync (socket, buffers, socketFlags);
+            return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
         }
 
         /// <summary>
