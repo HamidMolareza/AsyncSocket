@@ -9,8 +9,8 @@ using AsyncSocket.Utility;
 
 namespace AsyncSocket {
     public static class BaseSocket {
-        private const int DefaultReceiveTimeout = 5000; //ms
-        private const int MinimumReceiveTimeout = 1; //ms
+        public const int DefaultReceiveTimeout = 5000; //ms
+        public const int MinimumReceiveTimeout = 1; //ms
 
         #region ConnectAsync
 
@@ -96,8 +96,8 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket or data or encoding are null.</exception>
         public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, SocketFlags socketFlags) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
-            if (data == null) throw new ArgumentNullException(nameof(data));
-            if (encoding == null) throw new ArgumentNullException(nameof(encoding));
+            if (data == null) throw new ArgumentNullException (nameof (data));
+            if (encoding == null) throw new ArgumentNullException (nameof (encoding));
 
             var byteData = encoding.GetBytes (data);
             return await SendAsync (socket, byteData, 0, byteData.Length, socketFlags);
@@ -301,7 +301,7 @@ namespace AsyncSocket {
         public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
-            if (encoding == null) throw new ArgumentNullException(nameof(encoding));
+            if (encoding == null) throw new ArgumentNullException (nameof (encoding));
 
             var receiveBytes = await ReceiveAsync (socket, socketFlags);
 
@@ -322,15 +322,14 @@ namespace AsyncSocket {
         public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, int timeout = DefaultReceiveTimeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
-            if (encoding == null) throw new ArgumentNullException(nameof(encoding));
-            if(!IsTimeoutValid(timeout)) throw  new ArgumentOutOfRangeException(nameof(timeout));
+            if (encoding == null) throw new ArgumentNullException (nameof (encoding));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var receiveTask = ReceiveAsync (socket, encoding, socketFlags);
             return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
         }
 
-        private static bool IsTimeoutValid(int timeout)
-        {
+        private static bool IsTimeoutValid (int timeout) {
             return timeout >= MinimumReceiveTimeout;
         }
 
@@ -377,7 +376,7 @@ namespace AsyncSocket {
         public static async Task<byte[]> ReceiveAsync (Socket socket, int timeout = DefaultReceiveTimeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
-            if (!IsTimeoutValid(timeout)) throw new ArgumentOutOfRangeException(nameof(timeout));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var receiveTask = ReceiveAsync (socket, socketFlags);
             return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
@@ -426,7 +425,7 @@ namespace AsyncSocket {
         public static async Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, int timeout) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
-            if (!IsTimeoutValid(timeout)) throw new ArgumentOutOfRangeException(nameof(timeout));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var receiveTask = ReceiveAsync (socket, buffer, offset, size, socketFlags);
             return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
@@ -500,7 +499,7 @@ namespace AsyncSocket {
             //Validation
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
-            if(!IsTimeoutValid(timeout)) throw new ArgumentOutOfRangeException(nameof(timeout));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var receiveTask = ReceiveAsync (socket, buffers, socketFlags);
             return await TimeoutUtility.AwaitAsync (receiveTask, timeout);

@@ -53,16 +53,16 @@ namespace AsyncSocket {
             }
         }
 
-        private double _receiveTimeout;
-        private const double DefaultReceiveTimeout = 5000;
-        public const double MinimumReceiveTimeout = 1;
+        private int _receiveTimeout;
+        private const int DefaultReceiveTimeout = BaseSocket.DefaultReceiveTimeout;
+        public const int MinimumReceiveTimeout = BaseSocket.MinimumReceiveTimeout;
 
         /// <summary>
         /// To set property, The listener must be stop.
         /// </summary>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when value is out of range.</exception>
         /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
-        public double ReceiveTimeout {
+        public int ReceiveTimeout {
             get => _receiveTimeout;
             set {
                 ListenerMustBeStop ();
@@ -96,7 +96,7 @@ namespace AsyncSocket {
 
         #region Ctor
 
-        public Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, double receiveTimeout = DefaultReceiveTimeout) {
+        public Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, int receiveTimeout = DefaultReceiveTimeout) {
             BindToLocalEndPoint (port);
             NumOfThreads = numOfThreads;
             ReceiveTimeout = receiveTimeout;
