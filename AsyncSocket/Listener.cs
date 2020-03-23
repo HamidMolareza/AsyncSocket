@@ -96,7 +96,7 @@ namespace AsyncSocket {
 
         #region Ctor
 
-        protected Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, double receiveTimeout = DefaultReceiveTimeout) {
+        public Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, double receiveTimeout = DefaultReceiveTimeout) {
             BindToLocalEndPoint (port);
             NumOfThreads = numOfThreads;
             ReceiveTimeout = receiveTimeout;
@@ -150,7 +150,7 @@ namespace AsyncSocket {
                 return;
 
             IsListenerActive = false;
-            await ForceCloseServerAsync ();
+            await ForceCloseListenerAsync ();
         }
 
         #endregion
@@ -205,33 +205,35 @@ namespace AsyncSocket {
             }
         }
 
-        //TODO: Use client class
-        //TODO: XML
-        //TODO: Functional programming
-        //TODO: Exception handling
-        private async Task ForceCloseServerAsync () {
+        /// <summary>
+        /// Ensure the listener threads are close by send multi requests.
+        /// </summary>
+        private async Task ForceCloseListenerAsync () {
+            //Making sure the listener doesn't create new threads.
             IsListenerActive = false;
+
             var counter = 0;
             const int limit = 2;
 
+            //Create new client socket
+            Socket sender = new Socket (IpAddress.AddressFamily,
+                SocketType.Stream, ProtocolType.Tcp);
             do {
-                Socket sender = null;
                 try {
-                    sender = new Socket (IpAddress.AddressFamily,
-                        SocketType.Stream, ProtocolType.Tcp);
-                    // Connect the socket to the remote endpoint.
+                    //Create a connection to close listener thread that is in accept mode.
                     await BaseSocket.ConnectAsync (sender, LocalEndPoint);
+
+                    //Maybe there is another active listener thread, so try send more request to ensure all listener threads is stop.
                     counter = 0;
                 } catch (Exception) {
+                    //There is no listener to connect.
                     counter++;
-                } finally {
-                    if (sender?.Connected == true) {
-                        // Release the socket.  
-                        sender.Shutdown (SocketShutdown.Both);
-                        sender.Close ();
-                    }
                 }
             } while (counter < limit);
+
+            // Release the socket.  
+            sender.Shutdown (SocketShutdown.Both);
+            sender.Close ();
         }
 
         #endregion
