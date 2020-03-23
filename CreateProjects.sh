@@ -1,7 +1,7 @@
 #! /bin/bash
 
 #Save project name for easy use.
-projectName="AsynchronousClient"
+projectName="AsyncSocket"
 
 #Create sln.
 dotnet new sln
