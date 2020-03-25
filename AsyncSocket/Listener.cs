@@ -2,21 +2,26 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AsyncSocket.Exceptions;
 
 namespace AsyncSocket {
-    public abstract class Listener {
+    public abstract class Listener : IDisposable {
 
         #region Properties
+
+        private CancellationTokenSource cancellationSource = new CancellationTokenSource ();
 
         /// <summary>
         /// True if the listener is active, otherwise false.
         /// </summary>
         public bool IsListenerActive { get; private set; }
 
+        #region Port
+
         private int _port;
-        private const int DefaultPort = 11000;
+        public const int DefaultPort = 11000;
 
         /// <summary>
         /// The port number for the remote device. (Http: 80, HTTPS: 443)
@@ -28,13 +33,17 @@ namespace AsyncSocket {
             set => BindToLocalEndPoint (value);
         }
 
+        #endregion
+
         /// <summary>
         /// The maximum length of the pending connections queue.
         /// </summary>
-        private const int Backlog = 100;
+        protected const int Backlog = 100;
+
+        #region NumOfThreads
 
         private int _numOfThreads;
-        private const int DefaultNumOfThreads = 25;
+        public const int DefaultNumOfThreads = 25;
         public const int MinimumThreads = 1;
 
         /// <summary>
@@ -53,8 +62,12 @@ namespace AsyncSocket {
             }
         }
 
+        #endregion
+
+        #region ReceiveTimeout
+
         private int _receiveTimeout;
-        private const int DefaultReceiveTimeout = BaseSocket.DefaultReceiveTimeout;
+        public const int DefaultReceiveTimeout = BaseSocket.DefaultReceiveTimeout;
         public const int MinimumReceiveTimeout = BaseSocket.MinimumReceiveTimeout;
 
         /// <summary>
@@ -73,6 +86,8 @@ namespace AsyncSocket {
             }
         }
 
+        #endregion
+
         /// <summary>
         /// A network endpoint as an IP address and a port number.
         /// </summary>
@@ -83,8 +98,8 @@ namespace AsyncSocket {
         /// </summary>
         public static readonly IPHostEntry IpHostInfo = Dns.GetHostEntry (Dns.GetHostName ());
 
-        public static readonly IPAddress IpAddress = IpHostInfo.AddressList.Length > 3 ?
-            IpHostInfo.AddressList[2] : IpHostInfo.AddressList[1];
+        //TODO: Check on windows and linux
+        public static readonly IPAddress IpAddress = IpHostInfo.AddressList[0];
 
         /// <summary>
         /// TCP/IP socket
@@ -106,6 +121,7 @@ namespace AsyncSocket {
 
         #region Public Methods
 
+        //TODO: What happen if call "Start()" after call Dispose()? (or other public methods)
         /// <summary>
         /// Start the listener.
         /// </summary>
@@ -117,41 +133,47 @@ namespace AsyncSocket {
             for (var i = 0; i < NumOfThreads; i++)
                 Task.Run (StartListeningAsync);
 
+            //TODO: Big number of threads problem
             //Delay to ensure all threads is run. 
             Task.Delay (NumOfThreads).Wait ();
         }
+
+        /// <summary>
+        /// Stop the listener.
+        /// </summary>
+        public void Stop () {
+            if (!IsListenerActive)
+                return;
+
+            IsListenerActive = false;
+            cancellationSource.Cancel ();
+
+        }
+
+        #endregion
+
+        #region Protected Methods
 
         /// <summary>
         /// The method that handle requests.
         /// </summary>
         /// <param name="handler"></param>
         /// <param name="data">Request data.</param>
-        public abstract Task MainHandlerAsync (Socket handler, string data);
+        protected abstract void MainHandlerAsync (Socket handler, string data);
 
         /// <summary>
         /// When the request takes too long, this method will be called.
         /// </summary>
         /// <param name="handler">The socket can be null.</param>
         /// <param name="timeoutException">Exception details.</param>
-        public abstract Task TimeoutExceptionHandler (Socket handler, TimeoutException timeoutException);
+        protected virtual void TimeoutExceptionHandler (Socket handler, TimeoutException timeoutException) { /*Ignore*/ }
 
         /// <summary>
         /// When an unknown error occurs, this method will be called.
         /// </summary>
         /// <param name="handler">The socket can be null.</param>
         /// <param name="exception">Exception details.</param>
-        public abstract Task UnknownExceptionHandler (Socket handler, Exception exception);
-
-        /// <summary>
-        /// Stop the listener.
-        /// </summary>
-        public async Task StopAsync () {
-            if (!IsListenerActive)
-                return;
-
-            IsListenerActive = false;
-            await ForceCloseListenerAsync ();
-        }
+        protected abstract void UnExpectedExceptionHandler (Socket handler, Exception exception);
 
         #endregion
 
@@ -185,57 +207,69 @@ namespace AsyncSocket {
         }
 
         private async Task StartListeningAsync () {
-            Socket socket = null;
+            Socket localSocket;
 
             while (IsListenerActive) {
                 try {
-                    socket = await BaseSocket.AcceptAsync (ListenerSocket);
-                    var data = await BaseSocket.ReceiveAsync (socket, Encoding.UTF32, ReceiveTimeout);
-                    await MainHandlerAsync (socket, data);
-                } catch (TimeoutException te) {
-                    await TimeoutExceptionHandler (socket, te);
-                } catch (Exception e) {
-                    await UnknownExceptionHandler (socket, e);
-                } finally {
-                    if (socket != null) {
-                        socket.Shutdown (SocketShutdown.Both);
-                        socket.Close ();
+                    localSocket = null;
+                    try {
+                        var acceptTask = BaseSocket.AcceptAsync (ListenerSocket);
+                        acceptTask.Wait (cancellationSource.Token);
+                        localSocket = acceptTask.Result;
+
+                        var data = await BaseSocket.ReceiveAsync (localSocket, Encoding.UTF32, ReceiveTimeout);
+                        MainHandlerAsync (localSocket, data);
+                    } catch (OperationCanceledException) {
+                        break;
+                    } catch (TimeoutException te) {
+                        TimeoutExceptionHandler (localSocket, te);
+                    } catch (Exception e) {
+                        UnExpectedExceptionHandler (localSocket, e);
+                    } finally {
+                        if (localSocket != null) {
+                            localSocket.Shutdown (SocketShutdown.Both);
+                            localSocket.Close ();
+                        }
                     }
+                } catch (System.Exception) {
+                    //TODO: Ignore??
                 }
             }
         }
 
-        /// <summary>
-        /// Ensure the listener threads are close by send multi requests.
-        /// </summary>
-        private async Task ForceCloseListenerAsync () {
-            //Making sure the listener doesn't create new threads.
-            IsListenerActive = false;
+        #endregion
 
-            var counter = 0;
-            const int limit = 2;
+        #region IDisposable Support
+        private bool isDisposed = false;
 
-            //Create new client socket
-            Socket sender = new Socket (IpAddress.AddressFamily,
-                SocketType.Stream, ProtocolType.Tcp);
-            do {
-                try {
-                    //Create a connection to close listener thread that is in accept mode.
-                    await BaseSocket.ConnectAsync (sender, LocalEndPoint);
+        protected virtual void Dispose (bool disposing) {
+            if (isDisposed) return;
 
-                    //Maybe there is another active listener thread, so try send more request to ensure all listener threads is stop.
-                    counter = 0;
-                } catch (Exception) {
-                    //There is no listener to connect.
-                    counter++;
-                }
-            } while (counter < limit);
+            if (disposing) {
+                // dispose managed state (managed objects).
+            }
 
-            // Release the socket.  
-            sender.Shutdown (SocketShutdown.Both);
-            sender.Close ();
+            // free unmanaged resources (unmanaged objects) and set large fields to null.
+            cancellationSource.Dispose ();
+            ListenerSocket.Dispose ();
+
+            //override a finalizer below
+            isDisposed = true;
+
         }
 
+        // override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        ~Listener () {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose (false);
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose () {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose (true);
+            GC.SuppressFinalize (this);
+        }
         #endregion
     }
 }
