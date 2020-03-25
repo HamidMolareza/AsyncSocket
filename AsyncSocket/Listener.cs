@@ -6,6 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using AsyncSocket.Exceptions;
 
+//TODO: Are you using the properties correctly?
+//TODO: Check throw exceptions, Are they necessary?
+
 namespace AsyncSocket {
     public abstract class Listener : IDisposable {
 
@@ -16,7 +19,7 @@ namespace AsyncSocket {
         /// <summary>
         /// True if the listener is active, otherwise false.
         /// </summary>
-        public bool IsListenerActive { get; private set; }
+        public bool IsListenerStart { get; private set; }
 
         #region Port
 
@@ -121,19 +124,20 @@ namespace AsyncSocket {
 
         #region Public Methods
 
-        //TODO: What happen if call "Start()" after call Dispose()? (or other public methods)
         /// <summary>
         /// Start the listener.
         /// </summary>
         public void Start () {
-            if (IsListenerActive)
+            ListenerIsNotDisposed ();
+
+            if (IsListenerStart)
                 return;
 
-            IsListenerActive = true;
+            IsListenerStart = true;
             for (var i = 0; i < NumOfThreads; i++)
                 Task.Run (StartListeningAsync);
 
-            //TODO: Big number of threads problem
+            //TODO: Big numbers problem; Find best way to ensure all threads are run.
             //Delay to ensure all threads is run. 
             Task.Delay (NumOfThreads).Wait ();
         }
@@ -142,12 +146,15 @@ namespace AsyncSocket {
         /// Stop the listener.
         /// </summary>
         public void Stop () {
-            if (!IsListenerActive)
+            ListenerIsNotDisposed ();
+
+            if (!IsListenerStart)
                 return;
 
-            IsListenerActive = false;
+            IsListenerStart = false;
             cancellationSource.Cancel ();
 
+            //TODO: Add task delay for ensure all threads are stop? or another good way.
         }
 
         #endregion
@@ -179,13 +186,20 @@ namespace AsyncSocket {
 
         #region Private Methods
 
+        //TODO: Check and correct names like ListenerMustBeStop, IsListenerStart and so on. are they rational?
         /// <summary>
         /// Throw exception if listener is active.
         /// </summary>
         /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
         private void ListenerMustBeStop () {
-            if (IsListenerActive)
+            ListenerIsNotDisposed ();
+            if (IsListenerStart)
                 throw new ListenerIsActiveException ("The listener is active. Please stop the listener first.");
+        }
+
+        private void ListenerIsNotDisposed () {
+            if (isDisposed)
+                throw new ObjectDisposedException (nameof (Listener), "This object is disposed.");
         }
 
         /// <summary>
@@ -206,24 +220,41 @@ namespace AsyncSocket {
             _port = port;
         }
 
+        //TODO: When add "async" word to methods name? when they return Task<> or has async key?
         private async Task StartListeningAsync () {
-            Socket localSocket;
+            //TODO: Check throw exceptions, Are they necessary?
+            ListenerIsNotDisposed ();
 
-            while (IsListenerActive) {
+            Socket localSocket;
+            while (IsListenerStart && !cancellationSource.IsCancellationRequested) {
                 try {
                     localSocket = null;
                     try {
+                        //AcceptAsync
+                        //TODO: Refactor - Add utility?
                         var acceptTask = BaseSocket.AcceptAsync (ListenerSocket);
                         acceptTask.Wait (cancellationSource.Token);
                         localSocket = acceptTask.Result;
 
-                        var data = await BaseSocket.ReceiveAsync (localSocket, Encoding.UTF32, ReceiveTimeout);
+                        //ReceiveAsync
+                        //TODO: Refactor - Add utility?
+                        var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encoding.UTF32, ReceiveTimeout);
+                        receiveTask.Wait (cancellationSource.Token);
+                        var data = receiveTask.Result;
+
+                        //TODO: I want use cancellation Token for every methods in this method. How?
                         MainHandlerAsync (localSocket, data);
                     } catch (OperationCanceledException) {
+                        //TODO: break or return?
+                        break;
+                    } catch (ObjectDisposedException) {
+                        //TODO: break or return?
                         break;
                     } catch (TimeoutException te) {
+                        //TODO: Is it necessary? if yes, where?
                         TimeoutExceptionHandler (localSocket, te);
                     } catch (Exception e) {
+                        //TODO: Is it necessary? if yes, where?
                         UnExpectedExceptionHandler (localSocket, e);
                     } finally {
                         if (localSocket != null) {
@@ -247,6 +278,11 @@ namespace AsyncSocket {
 
             if (disposing) {
                 // dispose managed state (managed objects).
+                Stop (); //Stop the listener if is active.
+
+                //TODO: Find best way....
+                //TODO: When call stop, we must ensure the listener completely stop.
+                Task.Delay (100).Wait (); //Ensure all threads are stop.
             }
 
             // free unmanaged resources (unmanaged objects) and set large fields to null.

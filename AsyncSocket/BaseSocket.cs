@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AsyncSocket.Utility;
 
+//TODO: Unit Test
+
 namespace AsyncSocket {
     public static class BaseSocket {
         public const int DefaultReceiveTimeout = 5000; //ms

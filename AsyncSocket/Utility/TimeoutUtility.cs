@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 
 namespace AsyncSocket.Utility {
+    //TODO: Change name? (TaskUtility) (and add new features)
     public static class TimeoutUtility {
 
         /// <summary>
@@ -23,6 +24,7 @@ namespace AsyncSocket.Utility {
         /// <param name="task">The task must be execute.</param>
         /// <param name="timeout"></param>
         /// <exception cref="TimeoutException"></exception>
+        //TODO: Change name? (WaitAsync)
         public static async Task<T> AwaitAsync<T> (Task<T> task, int timeout) {
             if (await Task.WhenAny (task, Task.Delay (timeout)) == task)
                 return task.Result;
