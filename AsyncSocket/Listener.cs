@@ -14,13 +14,27 @@ namespace AsyncSocket {
 
         #region Properties
 
-        //TODO: XML
-        private CancellationTokenSource cancellationSource = new CancellationTokenSource ();
+        /// <summary>
+        /// Cancellation for stop threads.
+        /// </summary>
+        private CancellationTokenSource cancellationThreads = new CancellationTokenSource ();
+
+        #region IsStart
+        private bool _isStart;
 
         /// <summary>
         /// True if the listener is active, otherwise false.
         /// </summary>
-        public bool IsStart { get; private set; }
+        public bool IsStart {
+            get => _isStart && !cancellationThreads.IsCancellationRequested;
+            private set {
+                _isStart = value;
+                if (value == false)
+                    cancellationThreads.Cancel ();
+            }
+        }
+
+        #endregion
 
         #region Port
 
@@ -149,13 +163,10 @@ namespace AsyncSocket {
         /// Stop the listener.
         /// </summary>
         public void Stop () {
-            ListenerIsNotDisposed ();
-
             if (!IsStart)
                 return;
 
             IsStart = false;
-            cancellationSource.Cancel ();
 
             //TODO: Add task delay for ensure all threads are stop? or another good way.
         }
@@ -207,10 +218,12 @@ namespace AsyncSocket {
                 throw new ObjectDisposedException (nameof (Listener), "This object is disposed.");
         }
 
-        //TODO: XML
+        /// <summary>
+        /// Throw exception if the listener is disposed or start.
+        /// </summary>
         private void ListenerNotDisposedAndStop () {
             ListenerIsNotDisposed ();
-            ListenerIsNotDisposed ();
+            ListenerMustBeStop ();
         }
 
         /// <summary>
@@ -233,24 +246,21 @@ namespace AsyncSocket {
 
         //TODO: When add "async" word to methods name? when they return Task<> or has async key?
         private async Task StartListeningAsync () {
-            //TODO: Check throw exceptions, Are they necessary?
-            ListenerIsNotDisposed ();
-
             Socket localSocket;
-            while (IsStart && !cancellationSource.IsCancellationRequested) {
+            while (IsStart) {
                 try {
                     localSocket = null;
                     try {
                         //AcceptAsync
                         //TODO: Refactor - Add utility?
                         var acceptTask = BaseSocket.AcceptAsync (ListenerSocket);
-                        acceptTask.Wait (cancellationSource.Token);
+                        acceptTask.Wait (cancellationThreads.Token);
                         localSocket = acceptTask.Result;
 
                         //ReceiveAsync
                         //TODO: Refactor - Add utility?
                         var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encoding.UTF32, ReceiveTimeout);
-                        receiveTask.Wait (cancellationSource.Token);
+                        receiveTask.Wait (cancellationThreads.Token);
                         var data = receiveTask.Result;
 
                         //TODO: I want use cancellation Token for every methods in this method. How?
@@ -297,7 +307,7 @@ namespace AsyncSocket {
             }
 
             // free unmanaged resources (unmanaged objects) and set large fields to null.
-            cancellationSource.Dispose ();
+            cancellationThreads.Dispose ();
             ListenerSocket.Dispose ();
 
             //override a finalizer below
