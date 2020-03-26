@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AsyncSocket.Exceptions;
 
-//TODO: Are you using the properties correctly?
+//TODO: Unit Test
 //TODO: Check throw exceptions, Are they necessary?
 
 namespace AsyncSocket {
@@ -14,12 +14,13 @@ namespace AsyncSocket {
 
         #region Properties
 
+        //TODO: XML
         private CancellationTokenSource cancellationSource = new CancellationTokenSource ();
 
         /// <summary>
         /// True if the listener is active, otherwise false.
         /// </summary>
-        public bool IsListenerStart { get; private set; }
+        public bool IsStart { get; private set; }
 
         #region Port
 
@@ -57,7 +58,8 @@ namespace AsyncSocket {
         public int NumOfThreads {
             get => _numOfThreads;
             set {
-                ListenerMustBeStop ();
+                ListenerNotDisposedAndStop ();
+
                 if (value < MinimumThreads)
                     throw new ArgumentOutOfRangeException ($"The value must equal or more than {MinimumThreads}.");
 
@@ -81,7 +83,8 @@ namespace AsyncSocket {
         public int ReceiveTimeout {
             get => _receiveTimeout;
             set {
-                ListenerMustBeStop ();
+                ListenerNotDisposedAndStop ();
+
                 if (value < MinimumReceiveTimeout)
                     throw new ArgumentOutOfRangeException ($"The value must equal or more than {MinimumReceiveTimeout}.");
 
@@ -130,10 +133,10 @@ namespace AsyncSocket {
         public void Start () {
             ListenerIsNotDisposed ();
 
-            if (IsListenerStart)
+            if (IsStart)
                 return;
 
-            IsListenerStart = true;
+            IsStart = true;
             for (var i = 0; i < NumOfThreads; i++)
                 Task.Run (StartListeningAsync);
 
@@ -148,10 +151,10 @@ namespace AsyncSocket {
         public void Stop () {
             ListenerIsNotDisposed ();
 
-            if (!IsListenerStart)
+            if (!IsStart)
                 return;
 
-            IsListenerStart = false;
+            IsStart = false;
             cancellationSource.Cancel ();
 
             //TODO: Add task delay for ensure all threads are stop? or another good way.
@@ -188,18 +191,26 @@ namespace AsyncSocket {
 
         //TODO: Check and correct names like ListenerMustBeStop, IsListenerStart and so on. are they rational?
         /// <summary>
-        /// Throw exception if listener is active.
+        /// Throw exception if listener is start.
         /// </summary>
         /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
         private void ListenerMustBeStop () {
-            ListenerIsNotDisposed ();
-            if (IsListenerStart)
+            if (IsStart)
                 throw new ListenerIsActiveException ("The listener is active. Please stop the listener first.");
         }
 
+        /// <summary>
+        /// Throw exception if listener is disposed.
+        /// </summary>
         private void ListenerIsNotDisposed () {
             if (isDisposed)
                 throw new ObjectDisposedException (nameof (Listener), "This object is disposed.");
+        }
+
+        //TODO: XML
+        private void ListenerNotDisposedAndStop () {
+            ListenerIsNotDisposed ();
+            ListenerIsNotDisposed ();
         }
 
         /// <summary>
@@ -207,7 +218,7 @@ namespace AsyncSocket {
         /// <param name="port"></param>
         /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
         private void BindToLocalEndPoint (int port) {
-            ListenerMustBeStop ();
+            ListenerNotDisposedAndStop ();
 
             LocalEndPoint = new IPEndPoint (IpAddress, port);
 
@@ -226,7 +237,7 @@ namespace AsyncSocket {
             ListenerIsNotDisposed ();
 
             Socket localSocket;
-            while (IsListenerStart && !cancellationSource.IsCancellationRequested) {
+            while (IsStart && !cancellationSource.IsCancellationRequested) {
                 try {
                     localSocket = null;
                     try {
