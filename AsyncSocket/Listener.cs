@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AsyncSocket.Exceptions;
 
 //TODO: Unit Test
-//TODO: Check throw exceptions, Are they necessary?
 
 namespace AsyncSocket {
     public abstract class Listener : IDisposable {
@@ -17,7 +16,7 @@ namespace AsyncSocket {
         /// <summary>
         /// Cancellation for stop threads.
         /// </summary>
-        private CancellationTokenSource cancellationThreads = new CancellationTokenSource ();
+        private CancellationTokenSource cancellationThreads;
 
         #region IsStart
         private bool _isStart;
@@ -27,11 +26,8 @@ namespace AsyncSocket {
         /// </summary>
         public bool IsStart {
             get => _isStart && !cancellationThreads.IsCancellationRequested;
-            private set {
-                _isStart = value;
-                if (value == false)
-                    cancellationThreads.Cancel ();
-            }
+            private set => _isStart = value;
+
         }
 
         #endregion
@@ -150,7 +146,9 @@ namespace AsyncSocket {
             if (IsStart)
                 return;
 
+            cancellationThreads = new CancellationTokenSource ();
             IsStart = true;
+
             for (var i = 0; i < NumOfThreads; i++)
                 Task.Run (StartListeningAsync);
 
@@ -167,6 +165,7 @@ namespace AsyncSocket {
                 return;
 
             IsStart = false;
+            cancellationThreads.Cancel ();
 
             //TODO: Add task delay for ensure all threads are stop? or another good way.
         }
