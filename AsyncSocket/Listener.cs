@@ -68,7 +68,7 @@ namespace AsyncSocket {
         public int NumOfThreads {
             get => _numOfThreads;
             set {
-                ListenerNotDisposedAndStop ();
+                ListenerIsStopAndNotDisposed ();
 
                 if (value < MinimumThreads)
                     throw new ArgumentOutOfRangeException ($"The value must equal or more than {MinimumThreads}.");
@@ -82,23 +82,54 @@ namespace AsyncSocket {
         #region ReceiveTimeout
 
         private int _receiveTimeout;
-        public const int DefaultReceiveTimeout = BaseSocket.DefaultReceiveTimeout;
-        public const int MinimumReceiveTimeout = BaseSocket.MinimumReceiveTimeout;
 
         /// <summary>
-        /// To set property, The listener must be stop.
+        /// Default receive timeout base milliseconds.
+        /// </summary>
+        public const int DefaultReceiveTimeout = 5000; //ms
+
+        /// <summary>
+        /// Receive timeout base milliseconds. | To set property, the listener must be stop.
         /// </summary>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when value is out of range.</exception>
         /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
         public int ReceiveTimeout {
             get => _receiveTimeout;
             set {
-                ListenerNotDisposedAndStop ();
+                ListenerIsStopAndNotDisposed ();
 
-                if (value < MinimumReceiveTimeout)
-                    throw new ArgumentOutOfRangeException ($"The value must equal or more than {MinimumReceiveTimeout}.");
+                if (value < BaseSocket.MinimumTimeout)
+                    throw new ArgumentOutOfRangeException ($"The value must equal or more than {BaseSocket.MinimumTimeout}.");
 
                 _receiveTimeout = value;
+            }
+        }
+
+        #endregion
+
+        #region AcceptTimeout
+
+        private int _acceptTimeout;
+
+        /// <summary>
+        /// Default accept timeout base milliseconds.
+        /// </summary>
+        public const int DefaultAcceptTimeout = 2000; //ms
+
+        /// <summary>
+        /// Accept timeout base milliseconds. | To set property, the listener must be stop.
+        /// </summary>
+        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when value is out of range.</exception>
+        /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
+        public int AcceptTimeout {
+            get => _acceptTimeout;
+            set {
+                ListenerIsStopAndNotDisposed ();
+
+                if (value < BaseSocket.MinimumTimeout)
+                    throw new ArgumentOutOfRangeException ($"The value must equal or more than {BaseSocket.MinimumTimeout}.");
+
+                _acceptTimeout = value;
             }
         }
 
@@ -186,20 +217,39 @@ namespace AsyncSocket {
         /// </summary>
         /// <param name="handler">The socket can be null.</param>
         /// <param name="timeoutException">Exception details.</param>
-        protected virtual void TimeoutExceptionHandler (Socket handler, TimeoutException timeoutException) { /*Ignore*/ }
+        protected virtual void TimeoutExceptionHandler (Socket handler, TimeoutException timeoutException) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
 
         /// <summary>
         /// When an unknown error occurs, this method will be called.
         /// </summary>
         /// <param name="handler">The socket can be null.</param>
         /// <param name="exception">Exception details.</param>
-        protected abstract void UnExpectedExceptionHandler (Socket handler, Exception exception);
+        protected virtual void UnExpectedExceptionHandler (Socket handler, Exception exception) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
 
         #endregion
 
         #region Private Methods
 
-        //TODO: Check and correct names like ListenerMustBeStop, IsListenerStart and so on. are they rational?
         /// <summary>
         /// Throw exception if listener is start.
         /// </summary>
@@ -220,7 +270,7 @@ namespace AsyncSocket {
         /// <summary>
         /// Throw exception if the listener is disposed or start.
         /// </summary>
-        private void ListenerNotDisposedAndStop () {
+        private void ListenerIsStopAndNotDisposed () {
             ListenerIsNotDisposed ();
             ListenerMustBeStop ();
         }
@@ -230,7 +280,7 @@ namespace AsyncSocket {
         /// <param name="port"></param>
         /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
         private void BindToLocalEndPoint (int port) {
-            ListenerNotDisposedAndStop ();
+            ListenerIsStopAndNotDisposed ();
 
             LocalEndPoint = new IPEndPoint (IpAddress, port);
 
@@ -244,6 +294,7 @@ namespace AsyncSocket {
         }
 
         //TODO: When add "async" word to methods name? when they return Task<> or has async key?
+        //TODO: Refactor (Try-Catch)
         private async Task StartListeningAsync () {
             Socket localSocket;
             while (IsStart) {
@@ -252,12 +303,13 @@ namespace AsyncSocket {
                     try {
                         //AcceptAsync
                         //TODO: Refactor - Add utility?
-                        var acceptTask = BaseSocket.AcceptAsync (ListenerSocket);
+                        var acceptTask = BaseSocket.AcceptAsyncByTimeout (ListenerSocket, AcceptTimeout);
                         acceptTask.Wait (cancellationThreads.Token);
                         localSocket = acceptTask.Result;
 
                         //ReceiveAsync
                         //TODO: Refactor - Add utility?
+                        //TODO: Encoding.UTF?
                         var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encoding.UTF32, ReceiveTimeout);
                         receiveTask.Wait (cancellationThreads.Token);
                         var data = receiveTask.Result;
@@ -265,16 +317,14 @@ namespace AsyncSocket {
                         //TODO: I want use cancellation Token for every methods in this method. How?
                         MainHandlerAsync (localSocket, data);
                     } catch (OperationCanceledException) {
-                        //TODO: break or return?
-                        break;
+                        return;
                     } catch (ObjectDisposedException) {
-                        //TODO: break or return?
-                        break;
+                        return;
                     } catch (TimeoutException te) {
-                        //TODO: Is it necessary? if yes, where?
+                        //TODO: Cancellation Token
                         TimeoutExceptionHandler (localSocket, te);
                     } catch (Exception e) {
-                        //TODO: Is it necessary? if yes, where?
+                        //TODO: Cancellation Token
                         UnExpectedExceptionHandler (localSocket, e);
                     } finally {
                         if (localSocket != null) {
@@ -282,6 +332,10 @@ namespace AsyncSocket {
                             localSocket.Close ();
                         }
                     }
+                } catch (OperationCanceledException) {
+                    return;
+                } catch (ObjectDisposedException) {
+                    return;
                 } catch (System.Exception) {
                     //TODO: Ignore??
                 }
@@ -299,10 +353,6 @@ namespace AsyncSocket {
             if (disposing) {
                 // dispose managed state (managed objects).
                 Stop (); //Stop the listener if is active.
-
-                //TODO: Find best way....
-                //TODO: When call stop, we must ensure the listener completely stop.
-                Task.Delay (100).Wait (); //Ensure all threads are stop.
             }
 
             // free unmanaged resources (unmanaged objects) and set large fields to null.

@@ -12,7 +12,7 @@ using AsyncSocket.Utility;
 
 namespace AsyncSocket {
     public static class BaseSocket {
-        public const int MinimumReceiveTimeout = 1; //ms
+        public const int MinimumTimeout = 1; //ms
 
         #region ConnectAsync
 
@@ -492,7 +492,7 @@ namespace AsyncSocket {
         }
 
         private static bool IsTimeoutValid (int timeout) {
-            return timeout >= MinimumReceiveTimeout;
+            return timeout >= MinimumTimeout;
         }
 
         /// <summary>
