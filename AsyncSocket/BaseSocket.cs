@@ -9,7 +9,6 @@ using AsyncSocket.Utility;
 
 //TODO: Unit Test
 //TODO: Try add timout to most methods.
-//TODO: Default parameter.
 
 namespace AsyncSocket {
     public static class BaseSocket {
@@ -158,7 +157,7 @@ namespace AsyncSocket {
         /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="ArgumentNullException">Throw if socket or data or encoding are null.</exception>
-        public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, SocketFlags socketFlags) {
+        public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
             if (data == null) throw new ArgumentNullException (nameof (data));
             if (encoding == null) throw new ArgumentNullException (nameof (encoding));
@@ -167,7 +166,7 @@ namespace AsyncSocket {
             return await SendAsync (socket, byteData, 0, byteData.Length, socketFlags);
         }
 
-        public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, SocketFlags socketFlags, int timeout) {
+        public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
@@ -190,7 +189,7 @@ namespace AsyncSocket {
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
         public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
-            int size, SocketFlags socketFlags) {
+            int size, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
             var tcs = new TaskCompletionSource<int> ();
@@ -208,7 +207,7 @@ namespace AsyncSocket {
         }
 
         public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
-            int size, SocketFlags socketFlags, int timeout) {
+            int size, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
@@ -231,7 +230,7 @@ namespace AsyncSocket {
         /// <param name="errorCode">A SocketError object that stores the socket error.</param>
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, out SocketError errorCode) {
+        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset, int size, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
             var tcs = new TaskCompletionSource<int> ();
@@ -248,7 +247,7 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
-        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, out SocketError errorCode, int timeout) {
+        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
@@ -268,7 +267,7 @@ namespace AsyncSocket {
         /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags) {
+        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
             var tcs = new TaskCompletionSource<int> ();
@@ -285,7 +284,7 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
-        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, int timeout) {
+        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
@@ -306,7 +305,7 @@ namespace AsyncSocket {
         /// <param name="errorCode">A SocketError object that stores the socket error.</param>
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, out SocketError errorCode) {
+        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
             var tcs = new TaskCompletionSource<int> ();
@@ -323,7 +322,7 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
-        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, out SocketError errorCode, int timeout) {
+        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, out SocketError errorCode, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
@@ -420,7 +419,7 @@ namespace AsyncSocket {
         /// <param name="remoteEp">An EndPoint that represents the remote device.</param>
         /// <returns>The number of bytes sent.</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, EndPoint remoteEp) {
+        public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, EndPoint remoteEp, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
             var tcs = new TaskCompletionSource<int> ();
@@ -437,7 +436,7 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
-        public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, EndPoint remoteEp, int timeout) {
+        public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, EndPoint remoteEp, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
@@ -555,7 +554,7 @@ namespace AsyncSocket {
         /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
         /// <returns>The number of bytes received.</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags) {
+        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
@@ -585,7 +584,7 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static async Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, int timeout) {
+        public static async Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
@@ -605,7 +604,7 @@ namespace AsyncSocket {
         /// <param name="errorCode">A SocketError object that stores the socket error.</param>
         /// <returns>The number of bytes received.</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, out SocketError errorCode) {
+        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
@@ -622,7 +621,7 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
-        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, SocketFlags socketFlags, out SocketError errorCode) {
+        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
@@ -642,7 +641,7 @@ namespace AsyncSocket {
         /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
         /// <returns>The number of bytes received.</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags) {
+        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
@@ -670,7 +669,7 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static async Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, int timeout) {
+        public static async Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             //Validation
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
@@ -689,7 +688,7 @@ namespace AsyncSocket {
         /// <param name="errorCode">A SocketError object that stores the socket error.</param>
         /// <returns>The number of bytes received.</returns>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, out SocketError errorCode) {
+        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
@@ -706,7 +705,7 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
-        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, SocketFlags socketFlags, out SocketError errorCode) {
+        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
