@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 using AsyncSocket.Utility;
 
 //TODO: Unit Test
+//TODO: Try add timout to most methods.
+//TODO: Default parameter.
 
 namespace AsyncSocket {
     public static class BaseSocket {
-        public const int DefaultReceiveTimeout = 5000; //ms
         public const int MinimumReceiveTimeout = 1; //ms
 
         #region ConnectAsync
@@ -29,6 +30,18 @@ namespace AsyncSocket {
                 socket.EndConnect, remoteEndPoint, null);
         }
 
+        public static Task ConnectAsync (Socket socket, IPEndPoint remoteEndPoint, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         /// <summary>
         /// Asynchronous request for a remote host connection.
         /// </summary>
@@ -43,6 +56,18 @@ namespace AsyncSocket {
                 socket.EndConnect, ipAddress, port, null);
         }
 
+        public static Task ConnectAsync (Socket socket, IPAddress ipAddress, int port, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         /// <summary>
         /// Asynchronous request for a remote host connection.
         /// </summary>
@@ -54,6 +79,18 @@ namespace AsyncSocket {
 
             return Task.Factory.FromAsync (socket.BeginConnect,
                 socket.EndConnect, remoteEp, null);
+        }
+
+        public static Task ConnectAsync (Socket socket, EndPoint remoteEp, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
         }
 
         /// <summary>
@@ -70,6 +107,18 @@ namespace AsyncSocket {
                 socket.EndConnect, ipAddresses, port, null);
         }
 
+        public static Task ConnectAsync (Socket socket, IPAddress[] ipAddresses, int port, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         /// <summary>
         /// Asynchronous request for a remote host connection.
         /// </summary>
@@ -83,6 +132,19 @@ namespace AsyncSocket {
             return Task.Factory.FromAsync (socket.BeginConnect,
                 socket.EndConnect, host, port, null);
         }
+
+        public static Task ConnectAsync (Socket socket, string host, int port, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         #endregion
 
         #region SendAsync
@@ -103,6 +165,18 @@ namespace AsyncSocket {
 
             var byteData = encoding.GetBytes (data);
             return await SendAsync (socket, byteData, 0, byteData.Length, socketFlags);
+        }
+
+        public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, SocketFlags socketFlags, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
         }
 
         /// <summary>
@@ -133,6 +207,19 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
+            int size, SocketFlags socketFlags, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         /// <summary>
         /// Sends data asynchronously to a connected Socket.
         /// </summary>
@@ -161,6 +248,18 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, out SocketError errorCode, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         /// <summary>
         /// Sends data asynchronously to a connected Socket.
         /// </summary>
@@ -184,6 +283,18 @@ namespace AsyncSocket {
             }, null);
 
             return tcs.Task;
+        }
+
+        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
         }
 
         /// <summary>
@@ -211,6 +322,19 @@ namespace AsyncSocket {
 
             return tcs.Task;
         }
+
+        public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, SocketFlags socketFlags, out SocketError errorCode, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         #endregion
 
         #region SendFileAsync
@@ -227,6 +351,18 @@ namespace AsyncSocket {
                 throw new ArgumentNullException (nameof (socket));
 
             return Task.Factory.FromAsync (socket.BeginSendFile, socket.EndSendFile, fileName, null);
+        }
+
+        public static Task SendFileAsync (Socket socket, string fileName, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
         }
 
         /// <summary>
@@ -255,6 +391,18 @@ namespace AsyncSocket {
             }, null);
 
             return tcs.Task;
+        }
+
+        public static Task<bool> SendFileAsync (Socket socket, string fileName, byte[] preBuffer, byte[] postBuffer, TransmitFileOptions flags, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
         }
 
         #endregion
@@ -288,6 +436,19 @@ namespace AsyncSocket {
 
             return tcs.Task;
         }
+
+        public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, SocketFlags socketFlags, EndPoint remoteEp, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         #endregion
 
         #region ReceiveAsync
@@ -321,7 +482,7 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket or encoding are null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, int timeout = DefaultReceiveTimeout, SocketFlags socketFlags = SocketFlags.None) {
+        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (encoding == null) throw new ArgumentNullException (nameof (encoding));
@@ -375,7 +536,7 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static async Task<byte[]> ReceiveAsync (Socket socket, int timeout = DefaultReceiveTimeout, SocketFlags socketFlags = SocketFlags.None) {
+        public static async Task<byte[]> ReceiveAsync (Socket socket, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
@@ -461,6 +622,18 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, SocketFlags socketFlags, out SocketError errorCode) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         /// <summary>
         /// Asynchronously receive data from a connected Socket.
         /// </summary>
@@ -533,6 +706,18 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, SocketFlags socketFlags, out SocketError errorCode) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         #endregion
 
         #region AcceptAsync
@@ -550,6 +735,19 @@ namespace AsyncSocket {
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, null);
         }
 
+        //TODO: Name: ByTimeout?
+        public static Task<Socket> AcceptAsyncByTimeout (Socket socket, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         /// <summary>
         /// Asynchronous operation to accept an incoming connection attempt.
         /// </summary>
@@ -562,6 +760,18 @@ namespace AsyncSocket {
                 throw new ArgumentNullException (nameof (socket));
 
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, receiveSize, null);
+        }
+
+        public static Task<Socket> AcceptAsyncByTimeout (Socket socket, int receiveSize, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
         }
 
         /// <summary>
@@ -578,6 +788,19 @@ namespace AsyncSocket {
 
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, acceptSocket, receiveSize, null);
         }
+
+        public static Task<Socket> AcceptAsyncByTimeout (Socket socket, Socket acceptSocket, int receiveSize, int timeout) {
+            //TODO: NotImplementedException 
+            //TODO: XML + Exceptions
+            //TODO: Comment
+            //TODO: Exception handler
+            //TODO: Check inputs
+            //TODO: don't repeat yourself (DRY)
+            //TODO: Add the word "Async" to async method's name.
+            //TODO: Does the code have magic numbers?
+            throw new NotImplementedException ();
+        }
+
         #endregion
 
         #region DisconnectAsync
