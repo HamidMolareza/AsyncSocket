@@ -181,10 +181,25 @@ namespace AsyncSocket {
         /// <param name="data">Request data.</param>
         protected abstract void MainHandlerAsync (Socket handler, string data);
 
+        /// <summary>
+        /// When the request takes too long, this method will be called.
+        /// </summary>
+        /// <param name="handler">The socket can be null.</param>
+        /// <param name="timeoutException">Exception details.</param>
+        protected virtual void TimeoutExceptionHandler (Socket handler, TimeoutException timeoutException) { /*Ignore*/ }
+
+        /// <summary>
+        /// When an unknown error occurs, this method will be called.
+        /// </summary>
+        /// <param name="handler">The socket can be null.</param>
+        /// <param name="exception">Exception details.</param>
+        protected abstract void UnExpectedExceptionHandler (Socket handler, Exception exception);
+
         #endregion
 
         #region Private Methods
 
+        //TODO: Check and correct names like ListenerMustBeStop, IsListenerStart and so on. are they rational?
         /// <summary>
         /// Throw exception if listener is start.
         /// </summary>
@@ -197,7 +212,6 @@ namespace AsyncSocket {
         /// <summary>
         /// Throw exception if listener is disposed.
         /// </summary>
-        /// <exception cref="AsyncSocket.Exceptions.ObjectDisposedException">Throw exception if listener is disposed</exception>
         private void ListenerIsNotDisposed () {
             if (isDisposed)
                 throw new ObjectDisposedException (nameof (Listener), "This object is disposed.");
@@ -206,8 +220,6 @@ namespace AsyncSocket {
         /// <summary>
         /// Throw exception if the listener is disposed or start.
         /// </summary>
-        /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
-        /// <exception cref="AsyncSocket.Exceptions.ObjectDisposedException">Throw exception if listener is disposed</exception>
         private void ListenerNotDisposedAndStop () {
             ListenerIsNotDisposed ();
             ListenerMustBeStop ();
@@ -231,39 +243,47 @@ namespace AsyncSocket {
             _port = port;
         }
 
-        //TODO: When add "async" word to methods name? when they return Task<> or has async key? ***
+        //TODO: When add "async" word to methods name? when they return Task<> or has async key?
         private async Task StartListeningAsync () {
             Socket localSocket;
             while (IsStart) {
-                localSocket = null;
                 try {
-                    //AcceptAsync
-                    //TODO: Refactor - Add utility?
-                    var acceptTask = BaseSocket.AcceptAsync (ListenerSocket);
-                    acceptTask.Wait (cancellationThreads.Token);
-                    localSocket = acceptTask.Result;
+                    localSocket = null;
+                    try {
+                        //AcceptAsync
+                        //TODO: Refactor - Add utility?
+                        var acceptTask = BaseSocket.AcceptAsync (ListenerSocket);
+                        acceptTask.Wait (cancellationThreads.Token);
+                        localSocket = acceptTask.Result;
 
-                    //ReceiveAsync
-                    //TODO: Refactor - Add utility?
-                    var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encoding.UTF32, ReceiveTimeout);
-                    receiveTask.Wait (cancellationThreads.Token);
-                    var data = receiveTask.Result;
+                        //ReceiveAsync
+                        //TODO: Refactor - Add utility?
+                        var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encoding.UTF32, ReceiveTimeout);
+                        receiveTask.Wait (cancellationThreads.Token);
+                        var data = receiveTask.Result;
 
-                    //TODO: I want use cancellation Token for every methods in this method. How? ***
-                    MainHandlerAsync (localSocket, data);
-                } catch (OperationCanceledException) {
-                    return;
-                } catch (ObjectDisposedException) {
-                    return;
-                } catch (TimeoutException) {
-                    //TODO: What to do? ***
-                } catch (Exception) {
-                    //TODO: What to do? ***
-                } finally {
-                    if (localSocket != null) {
-                        localSocket.Shutdown (SocketShutdown.Both);
-                        localSocket.Close ();
+                        //TODO: I want use cancellation Token for every methods in this method. How?
+                        MainHandlerAsync (localSocket, data);
+                    } catch (OperationCanceledException) {
+                        //TODO: break or return?
+                        break;
+                    } catch (ObjectDisposedException) {
+                        //TODO: break or return?
+                        break;
+                    } catch (TimeoutException te) {
+                        //TODO: Is it necessary? if yes, where?
+                        TimeoutExceptionHandler (localSocket, te);
+                    } catch (Exception e) {
+                        //TODO: Is it necessary? if yes, where?
+                        UnExpectedExceptionHandler (localSocket, e);
+                    } finally {
+                        if (localSocket != null) {
+                            localSocket.Shutdown (SocketShutdown.Both);
+                            localSocket.Close ();
+                        }
                     }
+                } catch (System.Exception) {
+                    //TODO: Ignore??
                 }
             }
         }
@@ -279,6 +299,10 @@ namespace AsyncSocket {
             if (disposing) {
                 // dispose managed state (managed objects).
                 Stop (); //Stop the listener if is active.
+
+                //TODO: Find best way....
+                //TODO: When call stop, we must ensure the listener completely stop.
+                Task.Delay (100).Wait (); //Ensure all threads are stop.
             }
 
             // free unmanaged resources (unmanaged objects) and set large fields to null.
