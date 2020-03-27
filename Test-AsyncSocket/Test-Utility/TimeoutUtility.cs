@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using Xunit;
 
 namespace Test_AsyncSocket.Test_Utility {
-    public class TimeoutUtility {
-        #region  AwaitAsync
+    public class TaskUtility {
+        #region  WaitAsync
 
         [Theory]
         [InlineData (5, 10)]
@@ -12,9 +12,9 @@ namespace Test_AsyncSocket.Test_Utility {
         [InlineData (50, 60)]
         [InlineData (100, 110)]
         [InlineData (50, 10000)]
-        public async Task AwaitAsync_LessThanTimoutTakesLong_ReturnAnswer (int delay, int timeout) {
+        public async Task WaitAsync_LessThanTimoutTakesLong_ReturnAnswer (int delay, int timeout) {
             var task = Task.Run (() => Sum (2, 3, delay));
-            var actual = await AsyncSocket.Utility.TimeoutUtility.AwaitAsync (task, timeout);
+            var actual = await AsyncSocket.Utility.TaskUtility.WaitAsync (task, timeout);
             Assert.Equal (5, actual);
         }
 
@@ -24,9 +24,9 @@ namespace Test_AsyncSocket.Test_Utility {
         [InlineData (60, 50)]
         [InlineData (110, 100)]
         [InlineData (10000, 50)]
-        public void AwaitAsync_MoreThanTimoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
+        public void WaitAsync_MoreThanTimoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
             var task = Task.Run (() => Sum (2, 3, delay));
-            Assert.ThrowsAsync<TimeoutException> (() => AsyncSocket.Utility.TimeoutUtility.AwaitAsync (task, timeout));
+            Assert.ThrowsAsync<TimeoutException> (() => AsyncSocket.Utility.TaskUtility.WaitAsync (task, timeout));
         }
 
         private static int Sum (int a, int b, int delay) {
@@ -35,18 +35,18 @@ namespace Test_AsyncSocket.Test_Utility {
         }
 
         [Fact]
-        public void AwaitAsync_TaskIsNull_ThrowArgumentNullException () {
-            Assert.ThrowsAsync<ArgumentNullException> (() => AsyncSocket.Utility.TimeoutUtility.AwaitAsync<int> (null, 500));
+        public void WaitAsync_TaskIsNull_ThrowArgumentNullException () {
+            Assert.ThrowsAsync<ArgumentNullException> (() => AsyncSocket.Utility.TaskUtility.WaitAsync<int> (null, 500));
         }
 
         [Theory]
         [InlineData (-1)]
         [InlineData (int.MaxValue * -1)]
-        public void AwaitAsync_OutOfRangeTimeout_ThrowOutOfRangeException (int timeout) {
+        public void WaitAsync_OutOfRangeTimeout_ThrowOutOfRangeException (int timeout) {
             //Fake Task
             var task = new Task<int> (() => Sum (2, 3, 20));
 
-            Assert.ThrowsAsync<ArgumentOutOfRangeException> (() => AsyncSocket.Utility.TimeoutUtility.AwaitAsync (task, timeout));
+            Assert.ThrowsAsync<ArgumentOutOfRangeException> (() => AsyncSocket.Utility.TaskUtility.WaitAsync (task, timeout));
         }
 
         #endregion
@@ -61,7 +61,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [InlineData (50, 10000)]
         public async Task ExecuteAsync_LessThanTimoutTakesLong_ReturnAnswer (int delay, int timeout) {
             var task = new Task<int> (() => Sum (2, 3, delay));
-            var actual = await AsyncSocket.Utility.TimeoutUtility.ExecuteAsync (task, timeout);
+            var actual = await AsyncSocket.Utility.TaskUtility.ExecuteAsync (task, timeout);
             Assert.Equal (5, actual);
         }
 
@@ -73,12 +73,12 @@ namespace Test_AsyncSocket.Test_Utility {
         [InlineData (10000, 50)]
         public void ExecuteAsync_MoreThanTimoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
             var task = new Task<int> (() => Sum (2, 3, delay));
-            Assert.ThrowsAsync<TimeoutException> (() => AsyncSocket.Utility.TimeoutUtility.ExecuteAsync (task, timeout));
+            Assert.ThrowsAsync<TimeoutException> (() => AsyncSocket.Utility.TaskUtility.ExecuteAsync (task, timeout));
         }
 
         [Fact]
         public void ExecuteAsync_TaskIsNull_ThrowArgumentNullException () {
-            Assert.ThrowsAsync<ArgumentNullException> (() => AsyncSocket.Utility.TimeoutUtility.ExecuteAsync<int> (null, 500));
+            Assert.ThrowsAsync<ArgumentNullException> (() => AsyncSocket.Utility.TaskUtility.ExecuteAsync<int> (null, 500));
         }
 
         [Theory]
@@ -88,7 +88,7 @@ namespace Test_AsyncSocket.Test_Utility {
             //Fake Task
             var task = new Task<int> (() => Sum (2, 3, 20));
 
-            Assert.ThrowsAsync<ArgumentOutOfRangeException> (() => AsyncSocket.Utility.TimeoutUtility.ExecuteAsync (task, timeout));
+            Assert.ThrowsAsync<ArgumentOutOfRangeException> (() => AsyncSocket.Utility.TaskUtility.ExecuteAsync (task, timeout));
         }
 
         #endregion

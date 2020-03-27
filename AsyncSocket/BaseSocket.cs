@@ -29,7 +29,7 @@ namespace AsyncSocket {
                 socket.EndConnect, remoteEndPoint, null);
         }
 
-        public static Task ConnectAsync (Socket socket, IPEndPoint remoteEndPoint, int timeout) {
+        public static async Task ConnectAsync (Socket socket, IPEndPoint remoteEndPoint, int timeout) {
             //TODO: NotImplementedException 
             //TODO: XML + Exceptions
             //TODO: Comment
@@ -38,7 +38,12 @@ namespace AsyncSocket {
             //TODO: don't repeat yourself (DRY)
             //TODO: Add the word "Async" to async method's name.
             //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var connectTask = ConnectAsync (socket, remoteEndPoint);
+            await TaskUtility.WaitAsync (connectTask, timeout);
         }
 
         /// <summary>
@@ -488,7 +493,7 @@ namespace AsyncSocket {
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var receiveTask = ReceiveAsync (socket, encoding, socketFlags);
-            return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
+            return await TaskUtility.WaitAsync (receiveTask, timeout);
         }
 
         private static bool IsTimeoutValid (int timeout) {
@@ -541,7 +546,7 @@ namespace AsyncSocket {
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var receiveTask = ReceiveAsync (socket, socketFlags);
-            return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
+            return await TaskUtility.WaitAsync (receiveTask, timeout);
         }
 
         /// <summary>
@@ -590,7 +595,7 @@ namespace AsyncSocket {
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var receiveTask = ReceiveAsync (socket, buffer, offset, size, socketFlags);
-            return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
+            return await TaskUtility.WaitAsync (receiveTask, timeout);
         }
 
         /// <summary>
@@ -676,7 +681,7 @@ namespace AsyncSocket {
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var receiveTask = ReceiveAsync (socket, buffers, socketFlags);
-            return await TimeoutUtility.AwaitAsync (receiveTask, timeout);
+            return await TaskUtility.WaitAsync (receiveTask, timeout);
         }
 
         /// <summary>
