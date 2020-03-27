@@ -21,7 +21,7 @@ namespace AsyncSocket {
         /// </summary>
         /// <param name="socket"></param>
         /// <param name="remoteEndPoint">A network endpoint as an IP address and a port number.</param>
-        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         public static Task ConnectAsync (Socket socket, IPEndPoint remoteEndPoint) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
@@ -29,16 +29,15 @@ namespace AsyncSocket {
                 socket.EndConnect, remoteEndPoint, null);
         }
 
+        /// <summary>
+        /// Asynchronous request for a remote host connection.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="remoteEndPoint">A network endpoint as an IP address and a port number.</param>
+        /// <param name="timeout"></param>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
         public static async Task ConnectAsync (Socket socket, IPEndPoint remoteEndPoint, int timeout) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
 
@@ -52,7 +51,7 @@ namespace AsyncSocket {
         /// <param name="socket"></param>
         /// <param name="ipAddress">The IPAddress of the remote host.</param>
         /// <param name="port">The port number of the remote host.</param>
-        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         public static Task ConnectAsync (Socket socket, IPAddress ipAddress, int port) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
 
@@ -60,16 +59,21 @@ namespace AsyncSocket {
                 socket.EndConnect, ipAddress, port, null);
         }
 
-        public static Task ConnectAsync (Socket socket, IPAddress ipAddress, int port, int timeout) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+        /// <summary>
+        /// Asynchronous request for a remote host connection.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="ipAddress">The IPAddress of the remote host.</param>
+        /// <param name="port">The port number of the remote host.</param>
+        /// <param name="timeout"></param>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task ConnectAsync (Socket socket, IPAddress ipAddress, int port, int timeout) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var connectTask = ConnectAsync (socket, ipAddress, port);
+            await TaskUtility.WaitAsync (connectTask, timeout);
         }
 
         /// <summary>
@@ -85,16 +89,20 @@ namespace AsyncSocket {
                 socket.EndConnect, remoteEp, null);
         }
 
-        public static Task ConnectAsync (Socket socket, EndPoint remoteEp, int timeout) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+        /// <summary>
+        /// Asynchronous request for a remote host connection.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="remoteEp">An EndPoint that represents the remote device.</param>
+        /// <param name="timeout"></param>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task ConnectAsync (Socket socket, EndPoint remoteEp, int timeout) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var connectTask = ConnectAsync (socket, remoteEp);
+            await TaskUtility.WaitAsync (connectTask, timeout);
         }
 
         /// <summary>
