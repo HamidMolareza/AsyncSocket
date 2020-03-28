@@ -140,6 +140,8 @@ namespace AsyncSocket {
         /// </summary>
         public IPEndPoint LocalEndPoint { get; private set; }
 
+        public Encoding Encode { get; set; } = Encoding.UTF8;
+
         /// <summary>
         /// An IPHostEntry instance that contains address information about the host specified in address.
         /// </summary>
@@ -181,7 +183,7 @@ namespace AsyncSocket {
             IsStart = true;
 
             for (var i = 0; i < NumOfThreads; i++)
-                Task.Run (StartListeningAsync);
+                Task.Run (StartListening);
 
             //TODO: Big numbers problem; Find best way to ensure all threads are run.
             //Delay to ensure all threads is run. 
@@ -218,15 +220,18 @@ namespace AsyncSocket {
         /// <param name="handler">The socket can be null.</param>
         /// <param name="timeoutException">Exception details.</param>
         protected virtual void TimeoutExceptionHandler (Socket handler, TimeoutException timeoutException) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            if (handler == null || !handler.Connected)
+                return;
+
+            //A simple message.
+            var message = timeoutException == null ?
+                "Time out!" : timeoutException.Message;
+
+            //TODO: make async ?? .Wait()
+            //Send the response to the client.
+            BaseSocket.SendAsync (handler, message, Encode).Wait ();
+
+            //TODO: After add async key, add the "Async" word to method's name.
         }
 
         /// <summary>
@@ -235,15 +240,18 @@ namespace AsyncSocket {
         /// <param name="handler">The socket can be null.</param>
         /// <param name="exception">Exception details.</param>
         protected virtual void UnExpectedExceptionHandler (Socket handler, Exception exception) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            if (handler == null || !handler.Connected)
+                return;
+
+            //A simple message.
+            var message = exception == null ?
+                "Un expected exception!" : exception.Message;
+
+            //TODO: make async ?? .Wait()
+            //Send the response to the client.
+            BaseSocket.SendAsync (handler, message, Encode).Wait ();
+
+            //TODO: After add async key, add the "Async" word to method's name.
         }
 
         #endregion
@@ -293,9 +301,8 @@ namespace AsyncSocket {
             _port = port;
         }
 
-        //TODO: When add "async" word to methods name? when they return Task<> or has async key?
         //TODO: Refactor (Try-Catch)
-        private async Task StartListeningAsync () {
+        private void StartListening () {
             Socket localSocket;
             while (IsStart) {
                 try {
@@ -309,23 +316,33 @@ namespace AsyncSocket {
 
                         //ReceiveAsync
                         //TODO: Refactor - Add utility?
-                        //TODO: Encoding.UTF?
-                        var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encoding.UTF32, ReceiveTimeout);
+                        var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encode, ReceiveTimeout);
                         receiveTask.Wait (cancellationThreads.Token);
                         var data = receiveTask.Result;
 
-                        //TODO: I want use cancellation Token for every methods in this method. How?
-                        MainHandlerAsync (localSocket, data);
+                        //TODO: Refactor - Add utility
+                        //TODO: Test this approach.
+                        var mainHandlerTask = new Task (() => MainHandlerAsync (localSocket, data));
+                        mainHandlerTask.RunSynchronously ();
+                        mainHandlerTask.Wait (cancellationThreads.Token);
                     } catch (OperationCanceledException) {
                         return;
                     } catch (ObjectDisposedException) {
                         return;
                     } catch (TimeoutException te) {
-                        //TODO: Cancellation Token
-                        TimeoutExceptionHandler (localSocket, te);
+                        //TODO: Refactor - Add utility
+                        //TODO: Test this approach.
+                        var timeoutTask = new Task (() => TimeoutExceptionHandler (localSocket, te));
+                        timeoutTask.RunSynchronously ();
+                        timeoutTask.Wait (cancellationThreads.Token);
+
                     } catch (Exception e) {
-                        //TODO: Cancellation Token
-                        UnExpectedExceptionHandler (localSocket, e);
+                        //TODO: Refactor - Add utility
+                        //TODO: Test this approach.
+                        var unexpectedHandlerTask = new Task (() => UnExpectedExceptionHandler (localSocket, e));
+                        unexpectedHandlerTask.RunSynchronously ();
+                        unexpectedHandlerTask.Wait (cancellationThreads.Token);
+
                     } finally {
                         if (localSocket != null) {
                             localSocket.Shutdown (SocketShutdown.Both);
