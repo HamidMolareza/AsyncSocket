@@ -119,16 +119,21 @@ namespace AsyncSocket {
                 socket.EndConnect, ipAddresses, port, null);
         }
 
-        public static Task ConnectAsync (Socket socket, IPAddress[] ipAddresses, int port, int timeout) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+        /// <summary>
+        /// Asynchronous request for a remote host connection.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="ipAddresses">At least one IPAddress, designating the remote host.</param>
+        /// <param name="port">The port number of the remote host.</param>
+        /// <param name="timeout"></param>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task ConnectAsync (Socket socket, IPAddress[] ipAddresses, int port, int timeout) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var connectTask = ConnectAsync (socket, ipAddresses, port);
+            await TaskUtility.WaitAsync (connectTask, timeout);
         }
 
         /// <summary>
@@ -136,7 +141,7 @@ namespace AsyncSocket {
         /// </summary>
         /// <param name="socket"></param>
         /// <param name="host">The name of the remote host.</param>
-        /// <param name="port">The port number of the remote host.s</param>
+        /// <param name="port">The port number of the remote host.</param>
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
         public static Task ConnectAsync (Socket socket, string host, int port) {
             if (socket == null) throw new ArgumentNullException (nameof (socket));
@@ -145,16 +150,21 @@ namespace AsyncSocket {
                 socket.EndConnect, host, port, null);
         }
 
-        public static Task ConnectAsync (Socket socket, string host, int port, int timeout) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+        /// <summary>
+        /// Asynchronous request for a remote host connection.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="host">The name of the remote host.</param>
+        /// <param name="port">The port number of the remote host.</param>
+        /// <param name="timeout"></param>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task ConnectAsync (Socket socket, string host, int port, int timeout) {
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var connectTask = ConnectAsync (socket, host, port);
+            await TaskUtility.WaitAsync (connectTask, timeout);
         }
 
         #endregion
@@ -179,16 +189,23 @@ namespace AsyncSocket {
             return await SendAsync (socket, byteData, 0, byteData.Length, socketFlags);
         }
 
+        /// <summary>
+        /// Sends data asynchronously to a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="data">The data to send.</param>
+        /// <param name="encoding">The data encoding type.</param>
+        /// <param name="timeout"></param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <returns>The number of bytes sent</returns>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
         public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, int timeout, SocketFlags socketFlags = SocketFlags.None) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var connectTask = SendAsync (socket, data, encoding, socketFlags);
+            return await TaskUtility.WaitAsync (connectTask, timeout);
         }
 
         /// <summary>
@@ -219,17 +236,25 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
-        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
+        /// <summary>
+        /// Sends data asynchronously to a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="buffer">An array of type Byte that contains the data to send.</param>
+        /// <param name="offset">The zero-based position in the buffer parameter at which to begin sending data.</param>
+        /// <param name="size">The number of bytes to send.</param>
+        /// <param name="timeout"></param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <returns>The number of bytes sent</returns>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        public static async Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
             int size, int timeout, SocketFlags socketFlags = SocketFlags.None) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var connectTask = SendAsync (socket, buffer, offset, size, socketFlags);
+            return await TaskUtility.WaitAsync (connectTask, timeout);
         }
 
         /// <summary>
@@ -260,16 +285,26 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        /// <summary>
+        /// Sends data asynchronously to a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="buffer">An array of type Byte that contains the data to send.</param>
+        /// <param name="offset">The zero-based position in the buffer parameter at which to begin sending data.</param>
+        /// <param name="size">The number of bytes to send.</param>
+        /// <param name="timeout"></param>
+        /// <param name="errorCode">A SocketError object that stores the socket error.</param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <returns>The number of bytes sent</returns>
+        /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
         public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+
+            var connectTask = SendAsync (socket, buffer, offset, size, out errorCode, socketFlags);
+
+            return TaskUtility.WaitAsync (connectTask, timeout);
         }
 
         /// <summary>
