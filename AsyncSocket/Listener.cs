@@ -16,7 +16,7 @@ namespace AsyncSocket {
         /// <summary>
         /// Cancellation for stop threads.
         /// </summary>
-        private CancellationTokenSource cancellationThreads;
+        private CancellationTokenSource _cancellationThreads;
 
         #region IsStart
         private bool _isStart;
@@ -25,7 +25,7 @@ namespace AsyncSocket {
         /// True if the listener is active, otherwise false.
         /// </summary>
         public bool IsStart {
-            get => _isStart && !cancellationThreads.IsCancellationRequested;
+            get => _isStart && !_cancellationThreads.IsCancellationRequested;
             private set => _isStart = value;
 
         }
@@ -96,6 +96,7 @@ namespace AsyncSocket {
         public int ReceiveTimeout {
             get => _receiveTimeout;
             set {
+                //TODO: Need this method?
                 ListenerIsStopAndNotDisposed ();
 
                 if (value < BaseSocket.MinimumTimeout)
@@ -124,7 +125,8 @@ namespace AsyncSocket {
         public int AcceptTimeout {
             get => _acceptTimeout;
             set {
-                ListenerIsStopAndNotDisposed ();
+                //TODO: Need this method?
+                ListenerIsStopAndNotDisposed();
 
                 if (value < BaseSocket.MinimumTimeout)
                     throw new ArgumentOutOfRangeException ($"The value must equal or more than {BaseSocket.MinimumTimeout}.");
@@ -160,10 +162,11 @@ namespace AsyncSocket {
 
         #region Ctor
 
-        public Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, int receiveTimeout = DefaultReceiveTimeout) {
+        protected Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, int acceptTimeout=DefaultAcceptTimeout ,int receiveTimeout = DefaultReceiveTimeout) {
             BindToLocalEndPoint (port);
             NumOfThreads = numOfThreads;
             ReceiveTimeout = receiveTimeout;
+            AcceptTimeout = acceptTimeout;
         }
 
         #endregion
@@ -179,7 +182,7 @@ namespace AsyncSocket {
             if (IsStart)
                 return;
 
-            cancellationThreads = new CancellationTokenSource ();
+            _cancellationThreads = new CancellationTokenSource ();
             IsStart = true;
 
             for (var i = 0; i < NumOfThreads; i++)
@@ -198,7 +201,7 @@ namespace AsyncSocket {
                 return;
 
             IsStart = false;
-            cancellationThreads.Cancel ();
+            _cancellationThreads.Cancel ();
 
             //TODO: Add task delay for ensure all threads are stop? or another good way.
         }
@@ -271,7 +274,7 @@ namespace AsyncSocket {
         /// Throw exception if listener is disposed.
         /// </summary>
         private void ListenerIsNotDisposed () {
-            if (isDisposed)
+            if (_isDisposed)
                 throw new ObjectDisposedException (nameof (Listener), "This object is disposed.");
         }
 
@@ -303,28 +306,27 @@ namespace AsyncSocket {
 
         //TODO: Refactor (Try-Catch)
         private void StartListening () {
-            Socket localSocket;
             while (IsStart) {
                 try {
-                    localSocket = null;
+                    Socket localSocket = null;
                     try {
                         //AcceptAsync
                         //TODO: Refactor - Add utility?
                         var acceptTask = BaseSocket.AcceptAsyncByTimeout (ListenerSocket, AcceptTimeout);
-                        acceptTask.Wait (cancellationThreads.Token);
+                        acceptTask.Wait (_cancellationThreads.Token);
                         localSocket = acceptTask.Result;
 
                         //ReceiveAsync
                         //TODO: Refactor - Add utility?
                         var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encode, ReceiveTimeout);
-                        receiveTask.Wait (cancellationThreads.Token);
+                        receiveTask.Wait (_cancellationThreads.Token);
                         var data = receiveTask.Result;
 
                         //TODO: Refactor - Add utility
                         //TODO: Test this approach.
                         var mainHandlerTask = new Task (() => MainHandlerAsync (localSocket, data));
                         mainHandlerTask.RunSynchronously ();
-                        mainHandlerTask.Wait (cancellationThreads.Token);
+                        mainHandlerTask.Wait (_cancellationThreads.Token);
                     } catch (OperationCanceledException) {
                         return;
                     } catch (ObjectDisposedException) {
@@ -334,14 +336,14 @@ namespace AsyncSocket {
                         //TODO: Test this approach.
                         var timeoutTask = new Task (() => TimeoutExceptionHandler (localSocket, te));
                         timeoutTask.RunSynchronously ();
-                        timeoutTask.Wait (cancellationThreads.Token);
+                        timeoutTask.Wait (_cancellationThreads.Token);
 
                     } catch (Exception e) {
                         //TODO: Refactor - Add utility
                         //TODO: Test this approach.
                         var unexpectedHandlerTask = new Task (() => UnExpectedExceptionHandler (localSocket, e));
                         unexpectedHandlerTask.RunSynchronously ();
-                        unexpectedHandlerTask.Wait (cancellationThreads.Token);
+                        unexpectedHandlerTask.Wait (_cancellationThreads.Token);
 
                     } finally {
                         if (localSocket != null) {
@@ -353,7 +355,7 @@ namespace AsyncSocket {
                     return;
                 } catch (ObjectDisposedException) {
                     return;
-                } catch (System.Exception) {
+                } catch (Exception) {
                     //TODO: Ignore??
                 }
             }
@@ -362,10 +364,10 @@ namespace AsyncSocket {
         #endregion
 
         #region IDisposable Support
-        private bool isDisposed = false;
+        private bool _isDisposed;
 
         protected virtual void Dispose (bool disposing) {
-            if (isDisposed) return;
+            if (_isDisposed) return;
 
             if (disposing) {
                 // dispose managed state (managed objects).
@@ -373,11 +375,11 @@ namespace AsyncSocket {
             }
 
             // free unmanaged resources (unmanaged objects) and set large fields to null.
-            cancellationThreads.Dispose ();
+            _cancellationThreads.Dispose ();
             ListenerSocket.Dispose ();
 
             //override a finalizer below
-            isDisposed = true;
+            _isDisposed = true;
 
         }
 

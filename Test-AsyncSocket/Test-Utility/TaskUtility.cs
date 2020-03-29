@@ -52,7 +52,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [Theory]
         [InlineData (5, 20)]
         [InlineData (10, 1000)]
-        public async Task WaitAsync_LessThanTimoutTakesLong_ReturnAnswer (int delay, int timeout) {
+        public async Task WaitAsync_LessThanTimeoutTakesLong_ReturnAnswer (int delay, int timeout) {
             var task = Task.Run (() => Task.Delay (delay).Wait ());
             await AsyncSocket.Utility.TaskUtility.WaitAsync (task, timeout);
             Assert.True (true);
@@ -61,7 +61,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [Theory]
         [InlineData (20, 5)]
         [InlineData (10000, 10)]
-        public void WaitAsync_MoreThanTimoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
+        public void WaitAsync_MoreThanTimeoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
             var task = Task.Run (() => { Task.Delay (delay).Wait (); });
             Assert.ThrowsAsync<TimeoutException> (() => AsyncSocket.Utility.TaskUtility.WaitAsync (task, timeout));
         }
@@ -76,7 +76,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [InlineData (int.MaxValue * -1)]
         public void WaitAsync_OutOfRangeTimeout_ThrowOutOfRangeException (int timeout) {
             //Fake Task
-            var task = Task.Run (() => { return; });
+            var task = Task.Run (() => { });
 
             Assert.ThrowsAsync<ArgumentOutOfRangeException> (() => AsyncSocket.Utility.TaskUtility.WaitAsync (task, timeout));
         }
@@ -92,7 +92,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [Theory]
         [InlineData (5, 20)]
         [InlineData (10, 1000)]
-        public async Task ExecuteAsyncT_LessThanTimoutTakesLong_ReturnAnswer (int delay, int timeout) {
+        public async Task ExecuteAsyncT_LessThanTimeoutTakesLong_ReturnAnswer (int delay, int timeout) {
             var task = new Task<int> (() => Sum (2, 3, delay));
             var actual = await AsyncSocket.Utility.TaskUtility.ExecuteAsync (task, timeout);
             Assert.Equal (5, actual);
@@ -101,7 +101,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [Theory]
         [InlineData (20, 5)]
         [InlineData (10000, 10)]
-        public void ExecuteAsyncT_MoreThanTimoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
+        public void ExecuteAsyncT_MoreThanTimeoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
             var task = new Task<int> (() => Sum (2, 3, delay));
             Assert.ThrowsAsync<TimeoutException> (() => AsyncSocket.Utility.TaskUtility.ExecuteAsync (task, timeout));
         }
@@ -128,7 +128,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [Theory]
         [InlineData (5, 20)]
         [InlineData (10, 1000)]
-        public async Task ExecuteAsync_LessThanTimoutTakesLong_ReturnAnswer (int delay, int timeout) {
+        public async Task ExecuteAsync_LessThanTimeoutTakesLong_ReturnAnswer (int delay, int timeout) {
             var task = new Task (() => Task.Delay (delay).Wait ());
             await AsyncSocket.Utility.TaskUtility.ExecuteAsync (task, timeout);
             Assert.True (true);
@@ -137,7 +137,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [Theory]
         [InlineData (20, 5)]
         [InlineData (10000, 10)]
-        public void ExecuteAsync_MoreThanTimoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
+        public void ExecuteAsync_MoreThanTimeoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
             var task = new Task (() => Task.Delay (delay).Wait ());
             Assert.ThrowsAsync<TimeoutException> (() => AsyncSocket.Utility.TaskUtility.ExecuteAsync (task, timeout));
         }
@@ -152,7 +152,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [InlineData (int.MaxValue * -1)]
         public void ExecuteAsync_OutOfRangeTimeout_ThrowOutOfRangeException (int timeout) {
             //Fake Task
-            var task = new Task (() => { return; });
+            var task = new Task (() => { });
 
             Assert.ThrowsAsync<ArgumentOutOfRangeException> (() => AsyncSocket.Utility.TaskUtility.ExecuteAsync (task, timeout));
         }

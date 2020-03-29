@@ -21,7 +21,6 @@ namespace AsyncSocket.Utility {
         /// <summary>
         /// Start the task and consider timeout.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="task">The task that must be execute.</param>
         /// <param name="timeout"></param>
         /// <exception cref="TimeoutException"></exception>
@@ -51,7 +50,6 @@ namespace AsyncSocket.Utility {
         /// <summary>
         /// If the task is not completed within a specified timeout, throw timeout exception.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="task">The task that must be execute.</param>
         /// <param name="timeout"></param>
         /// <exception cref="TimeoutException"></exception>
