@@ -96,8 +96,7 @@ namespace AsyncSocket {
         public int ReceiveTimeout {
             get => _receiveTimeout;
             set {
-                //TODO: Need this method?
-                ListenerIsStopAndNotDisposed ();
+                ListenerIsNotDisposed ();
 
                 if (value < BaseSocket.MinimumTimeout)
                     throw new ArgumentOutOfRangeException ($"The value must equal or more than {BaseSocket.MinimumTimeout}.");
@@ -125,8 +124,7 @@ namespace AsyncSocket {
         public int AcceptTimeout {
             get => _acceptTimeout;
             set {
-                //TODO: Need this method?
-                ListenerIsStopAndNotDisposed();
+                ListenerIsNotDisposed ();
 
                 if (value < BaseSocket.MinimumTimeout)
                     throw new ArgumentOutOfRangeException ($"The value must equal or more than {BaseSocket.MinimumTimeout}.");
@@ -162,7 +160,7 @@ namespace AsyncSocket {
 
         #region Ctor
 
-        protected Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, int acceptTimeout=DefaultAcceptTimeout ,int receiveTimeout = DefaultReceiveTimeout) {
+        protected Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, int acceptTimeout = DefaultAcceptTimeout, int receiveTimeout = DefaultReceiveTimeout) {
             BindToLocalEndPoint (port);
             NumOfThreads = numOfThreads;
             ReceiveTimeout = receiveTimeout;
@@ -230,11 +228,8 @@ namespace AsyncSocket {
             var message = timeoutException == null ?
                 "Time out!" : timeoutException.Message;
 
-            //TODO: make async ?? .Wait()
             //Send the response to the client.
             BaseSocket.SendAsync (handler, message, Encode).Wait ();
-
-            //TODO: After add async key, add the "Async" word to method's name.
         }
 
         /// <summary>
@@ -250,11 +245,8 @@ namespace AsyncSocket {
             var message = exception == null ?
                 "Un expected exception!" : exception.Message;
 
-            //TODO: make async ?? .Wait()
             //Send the response to the client.
             BaseSocket.SendAsync (handler, message, Encode).Wait ();
-
-            //TODO: After add async key, add the "Async" word to method's name.
         }
 
         #endregion
