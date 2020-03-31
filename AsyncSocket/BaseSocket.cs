@@ -37,9 +37,11 @@ namespace AsyncSocket {
         /// <param name="timeout"></param>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static async Task ConnectAsync (Socket socket, IPEndPoint remoteEndPoint, int timeout) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ConnectAsync (socket, remoteEndPoint);
             await TaskUtility.WaitAsync (task, timeout);
@@ -68,9 +70,11 @@ namespace AsyncSocket {
         /// <param name="timeout"></param>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static async Task ConnectAsync (Socket socket, IPAddress ipAddress, int port, int timeout) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ConnectAsync (socket, ipAddress, port);
             await TaskUtility.WaitAsync (task, timeout);
@@ -97,9 +101,11 @@ namespace AsyncSocket {
         /// <param name="timeout"></param>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static async Task ConnectAsync (Socket socket, EndPoint remoteEp, int timeout) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ConnectAsync (socket, remoteEp);
             await TaskUtility.WaitAsync (task, timeout);
@@ -128,9 +134,11 @@ namespace AsyncSocket {
         /// <param name="timeout"></param>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static async Task ConnectAsync (Socket socket, IPAddress[] ipAddresses, int port, int timeout) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ConnectAsync (socket, ipAddresses, port);
             await TaskUtility.WaitAsync (task, timeout);
@@ -159,9 +167,11 @@ namespace AsyncSocket {
         /// <param name="timeout"></param>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static async Task ConnectAsync (Socket socket, string host, int port, int timeout) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ConnectAsync (socket, host, port);
             await TaskUtility.WaitAsync (task, timeout);
@@ -200,9 +210,11 @@ namespace AsyncSocket {
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendAsync (socket, data, encoding, socketFlags);
             return await TaskUtility.WaitAsync (task, timeout);
@@ -248,10 +260,12 @@ namespace AsyncSocket {
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static async Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
             int size, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendAsync (socket, buffer, offset, size, socketFlags);
             return await TaskUtility.WaitAsync (task, timeout);
@@ -298,9 +312,11 @@ namespace AsyncSocket {
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendAsync (socket, buffer, offset, size, out errorCode, socketFlags);
             return TaskUtility.WaitAsync (task, timeout);
@@ -341,9 +357,11 @@ namespace AsyncSocket {
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendAsync (socket, buffers, socketFlags);
             return TaskUtility.WaitAsync (task, timeout);
@@ -386,9 +404,11 @@ namespace AsyncSocket {
         /// <returns>The number of bytes sent</returns>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static Task<int> SendAsync (Socket socket, IList<ArraySegment<byte>> buffers, out SocketError errorCode, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendAsync (socket, buffers, out errorCode, socketFlags);
             return TaskUtility.WaitAsync (task, timeout);
@@ -419,11 +439,13 @@ namespace AsyncSocket {
         /// <param name="timeout"></param>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static Task SendFileAsync (Socket socket, string fileName, int timeout) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (fileName == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendFileAsync (socket, fileName);
             return TaskUtility.WaitAsync (task, timeout);
@@ -469,11 +491,13 @@ namespace AsyncSocket {
         /// <returns>True if successful, otherwise false</returns>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static Task<bool> SendFileAsync (Socket socket, string fileName, byte[] preBuffer, byte[] postBuffer, TransmitFileOptions flags, int timeout) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (fileName == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendFileAsync (socket, fileName, preBuffer, postBuffer, flags);
             return TaskUtility.WaitAsync (task, timeout);
@@ -524,9 +548,11 @@ namespace AsyncSocket {
         /// <returns>The number of bytes sent.</returns>
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         public static Task<int> SendToAsync (Socket socket, byte[] buffer, int offset, int size, EndPoint remoteEp, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendToAsync (socket, buffer, offset, size, remoteEp, socketFlags);
             return TaskUtility.WaitAsync (task, timeout);
@@ -571,8 +597,8 @@ namespace AsyncSocket {
             if (encoding == null) throw new ArgumentNullException (nameof (encoding));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
-            var receiveTask = ReceiveAsync (socket, encoding, socketFlags);
-            return await TaskUtility.WaitAsync (receiveTask, timeout);
+            var task = ReceiveAsync (socket, encoding, socketFlags);
+            return await TaskUtility.WaitAsync (task, timeout);
         }
 
         private static bool IsTimeoutValid (int timeout) {
@@ -624,8 +650,8 @@ namespace AsyncSocket {
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
-            var receiveTask = ReceiveAsync (socket, socketFlags);
-            return await TaskUtility.WaitAsync (receiveTask, timeout);
+            var task = ReceiveAsync (socket, socketFlags);
+            return await TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -673,8 +699,8 @@ namespace AsyncSocket {
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
-            var receiveTask = ReceiveAsync (socket, buffer, offset, size, socketFlags);
-            return await TaskUtility.WaitAsync (receiveTask, timeout);
+            var task = ReceiveAsync (socket, buffer, offset, size, socketFlags);
+            return await TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -705,16 +731,27 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        /// <summary>
+        /// Asynchronously receive data from a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="buffer">An array of type Byte that is the storage location for the received data.</param>
+        /// <param name="offset">The location in buffer to store the received data.</param>
+        /// <param name="size">The number of bytes to receive.</param>
+        /// <param name="timeout"></param>
+        /// <param name="errorCode">A SocketError object that stores the socket error.</param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <returns>The number of bytes received.</returns>
+        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
+        /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
         public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
+
+            var task = ReceiveAsync (socket, buffer, offset, size, out errorCode, socketFlags);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -759,8 +796,8 @@ namespace AsyncSocket {
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
-            var receiveTask = ReceiveAsync (socket, buffers, socketFlags);
-            return await TaskUtility.WaitAsync (receiveTask, timeout);
+            var task = ReceiveAsync (socket, buffers, socketFlags);
+            return await TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
