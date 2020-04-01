@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using AsyncSocket.Utility;
 
 //TODO: Unit Test
-//TODO: Try add timout to most methods.
 
 namespace AsyncSocket {
     public static class BaseSocket {
@@ -211,13 +210,13 @@ namespace AsyncSocket {
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
-        public static async Task<int> SendAsync (Socket socket, string data, Encoding encoding, int timeout, SocketFlags socketFlags = SocketFlags.None) {
+        public static Task<int> SendAsync (Socket socket, string data, Encoding encoding, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendAsync (socket, data, encoding, socketFlags);
-            return await TaskUtility.WaitAsync (task, timeout);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -261,14 +260,14 @@ namespace AsyncSocket {
         /// <exception cref="System.ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
-        public static async Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
+        public static Task<int> SendAsync (Socket socket, byte[] buffer, int offset,
             int size, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = SendAsync (socket, buffer, offset, size, socketFlags);
-            return await TaskUtility.WaitAsync (task, timeout);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -591,14 +590,14 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket or encoding are null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static async Task<string> ReceiveAsync (Socket socket, Encoding encoding, int timeout, SocketFlags socketFlags = SocketFlags.None) {
+        public static Task<string> ReceiveAsync (Socket socket, Encoding encoding, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (encoding == null) throw new ArgumentNullException (nameof (encoding));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ReceiveAsync (socket, encoding, socketFlags);
-            return await TaskUtility.WaitAsync (task, timeout);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         private static bool IsTimeoutValid (int timeout) {
@@ -645,13 +644,13 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static async Task<byte[]> ReceiveAsync (Socket socket, int timeout, SocketFlags socketFlags = SocketFlags.None) {
+        public static Task<byte[]> ReceiveAsync (Socket socket, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ReceiveAsync (socket, socketFlags);
-            return await TaskUtility.WaitAsync (task, timeout);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -694,13 +693,13 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         /// <exception cref="System.TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static async Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, SocketFlags socketFlags = SocketFlags.None) {
+        public static Task<int> ReceiveAsync (Socket socket, byte[] buffer, int offset, int size, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ReceiveAsync (socket, buffer, offset, size, socketFlags);
-            return await TaskUtility.WaitAsync (task, timeout);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -790,14 +789,14 @@ namespace AsyncSocket {
         /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
         /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static async Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, SocketFlags socketFlags = SocketFlags.None) {
+        public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, SocketFlags socketFlags = SocketFlags.None) {
             //Validation
             if (socket == null)
                 throw new ArgumentNullException (nameof (socket));
             if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
 
             var task = ReceiveAsync (socket, buffers, socketFlags);
-            return await TaskUtility.WaitAsync (task, timeout);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -826,16 +825,26 @@ namespace AsyncSocket {
             return tcs.Task;
         }
 
+        /// <summary>
+        /// Asynchronously receive data from a connected Socket.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="buffers">An array of type Byte that is the storage location for the received data.</param>
+        /// <param name="timeout"></param>
+        /// <param name="socketFlags">A bitwise combination of the SocketFlags values.</param>
+        /// <param name="errorCode">A SocketError object that stores the socket error.</param>
+        /// <returns>The number of bytes received.</returns>
+        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
+        /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
         public static Task<int> ReceiveAsync (Socket socket, IList<ArraySegment<byte>> buffers, int timeout, out SocketError errorCode, SocketFlags socketFlags = SocketFlags.None) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            //Validation
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
+
+            var task = ReceiveAsync (socket, buffers, out errorCode, socketFlags);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         #endregion
@@ -856,16 +865,23 @@ namespace AsyncSocket {
         }
 
         //TODO: Name: ByTimeout?
+        /// <summary>
+        /// Asynchronous operation to accept an incoming connection attempt.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="timeout"></param>
+        /// <returns>A Socket for a newly created connection.</returns>
+        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
+        /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
         public static Task<Socket> AcceptAsyncByTimeout (Socket socket, int timeout) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            //Validation
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
+
+            var task = AcceptAsync (socket);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -882,16 +898,25 @@ namespace AsyncSocket {
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, receiveSize, null);
         }
 
+        //TODO: Name: ByTimeout?
+        /// <summary>
+        /// Asynchronous operation to accept an incoming connection attempt.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="receiveSize">The number of bytes to accept from the sender.</param>
+        /// <param name="timeout"></param>
+        /// <returns>A Socket for a newly created connection.</returns>
+        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
+        /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
         public static Task<Socket> AcceptAsyncByTimeout (Socket socket, int receiveSize, int timeout) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            //Validation
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
+
+            var task = AcceptAsync (socket, receiveSize);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -909,16 +934,26 @@ namespace AsyncSocket {
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, acceptSocket, receiveSize, null);
         }
 
+        //TODO: Name: ByTimeout?
+        /// <summary>
+        /// Asynchronous operation to accept an incoming connection attempt.
+        /// </summary>
+        /// <param name="socket"></param>
+        /// <param name="acceptSocket">The accepted Socket object. This value may be null.</param>
+        /// <param name="receiveSize">The maximum number of bytes to receive.</param>
+        /// <param name="timeout"></param>
+        /// <returns>A Socket for a newly created connection.</returns>
+        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
+        /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
         public static Task<Socket> AcceptAsyncByTimeout (Socket socket, Socket acceptSocket, int receiveSize, int timeout) {
-            //TODO: NotImplementedException 
-            //TODO: XML + Exceptions
-            //TODO: Comment
-            //TODO: Exception handler
-            //TODO: Check inputs
-            //TODO: don't repeat yourself (DRY)
-            //TODO: Add the word "Async" to async method's name.
-            //TODO: Does the code have magic numbers?
-            throw new NotImplementedException ();
+            //Validation
+            if (socket == null)
+                throw new ArgumentNullException (nameof (socket));
+            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
+
+            var task = AcceptAsync (socket, acceptSocket, receiveSize);
+            return TaskUtility.WaitAsync (task, timeout);
         }
 
         #endregion
