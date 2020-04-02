@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -107,34 +108,6 @@ namespace AsyncSocket {
 
         #endregion
 
-        #region AcceptTimeout
-
-        private int _acceptTimeout;
-
-        /// <summary>
-        /// Default accept timeout base milliseconds.
-        /// </summary>
-        public const int DefaultAcceptTimeout = 2000; //ms
-
-        /// <summary>
-        /// Accept timeout base milliseconds. | To set property, the listener must be stop.
-        /// </summary>
-        /// <exception cref="System.ArgumentOutOfRangeException">Thrown when value is out of range.</exception>
-        /// <exception cref="AsyncSocket.Exceptions.ListenerIsActiveException">Throw exception if listener is active.</exception>
-        public int AcceptTimeout {
-            get => _acceptTimeout;
-            set {
-                ListenerIsNotDisposed ();
-
-                if (value < BaseSocket.MinimumTimeout)
-                    throw new ArgumentOutOfRangeException ($"The value must equal or more than {BaseSocket.MinimumTimeout}.");
-
-                _acceptTimeout = value;
-            }
-        }
-
-        #endregion
-
         /// <summary>
         /// A network endpoint as an IP address and a port number.
         /// </summary>
@@ -160,11 +133,10 @@ namespace AsyncSocket {
 
         #region Ctor
 
-        protected Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, int acceptTimeout = DefaultAcceptTimeout, int receiveTimeout = DefaultReceiveTimeout) {
+        protected Listener (int port = DefaultPort, int numOfThreads = DefaultNumOfThreads, int receiveTimeout = DefaultReceiveTimeout) {
             BindToLocalEndPoint (port);
             NumOfThreads = numOfThreads;
             ReceiveTimeout = receiveTimeout;
-            AcceptTimeout = acceptTimeout;
         }
 
         #endregion
@@ -183,12 +155,39 @@ namespace AsyncSocket {
             _cancellationThreads = new CancellationTokenSource ();
             IsStart = true;
 
-            for (var i = 0; i < NumOfThreads; i++)
-                Task.Run (StartListening);
+            var tasks = new List<Task> (NumOfThreads);
+            for (var i = 0; i < NumOfThreads; i++) {
+                tasks.Add (Task.Run (StartListening));
+            }
 
-            //TODO: Big numbers problem; Find best way to ensure all threads are run.
-            //Delay to ensure all threads is run. 
-            Task.Delay (NumOfThreads).Wait ();
+            EnsureAllTasksAreRunOrComplete (tasks);
+        }
+
+        private static void EnsureAllTasksAreRunOrComplete (List<Task> tasks) {
+            foreach (var task in tasks) {
+                var isRunOrComplete = false;
+                do {
+                    switch (task.Status) {
+                        case TaskStatus.Canceled:
+                        case TaskStatus.Faulted:
+                        case TaskStatus.RanToCompletion:
+                        case TaskStatus.Running:
+                            isRunOrComplete = true;
+                            break;
+                        case TaskStatus.Created:
+                        case TaskStatus.WaitingForActivation:
+                        case TaskStatus.WaitingForChildrenToComplete:
+                        case TaskStatus.WaitingToRun:
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException (nameof (tasks));
+                    }
+                    if (isRunOrComplete)
+                        break;
+
+                    Task.Delay (5).Wait ();
+                } while (true);
+            }
         }
 
         /// <summary>
@@ -304,7 +303,7 @@ namespace AsyncSocket {
                     try {
                         //AcceptAsync
                         //TODO: Refactor - Add utility?
-                        var acceptTask = BaseSocket.AcceptAsyncByTimeout (ListenerSocket, AcceptTimeout);
+                        var acceptTask = BaseSocket.AcceptAsync (ListenerSocket);
                         acceptTask.Wait (_cancellationThreads.Token);
                         localSocket = acceptTask.Result;
 
