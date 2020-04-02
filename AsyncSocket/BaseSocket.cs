@@ -864,26 +864,6 @@ namespace AsyncSocket {
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, null);
         }
 
-        //TODO: Name: ByTimeout?
-        /// <summary>
-        /// Asynchronous operation to accept an incoming connection attempt.
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="timeout"></param>
-        /// <returns>A Socket for a newly created connection.</returns>
-        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
-        /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static Task<Socket> AcceptAsyncByTimeout (Socket socket, int timeout) {
-            //Validation
-            if (socket == null)
-                throw new ArgumentNullException (nameof (socket));
-            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
-
-            var task = AcceptAsync (socket);
-            return TaskUtility.WaitAsync (task, timeout);
-        }
-
         /// <summary>
         /// Asynchronous operation to accept an incoming connection attempt.
         /// </summary>
@@ -896,27 +876,6 @@ namespace AsyncSocket {
                 throw new ArgumentNullException (nameof (socket));
 
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, receiveSize, null);
-        }
-
-        //TODO: Name: ByTimeout?
-        /// <summary>
-        /// Asynchronous operation to accept an incoming connection attempt.
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="receiveSize">The number of bytes to accept from the sender.</param>
-        /// <param name="timeout"></param>
-        /// <returns>A Socket for a newly created connection.</returns>
-        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
-        /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static Task<Socket> AcceptAsyncByTimeout (Socket socket, int receiveSize, int timeout) {
-            //Validation
-            if (socket == null)
-                throw new ArgumentNullException (nameof (socket));
-            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
-
-            var task = AcceptAsync (socket, receiveSize);
-            return TaskUtility.WaitAsync (task, timeout);
         }
 
         /// <summary>
@@ -932,28 +891,6 @@ namespace AsyncSocket {
                 throw new ArgumentNullException (nameof (socket));
 
             return Task.Factory.FromAsync (socket.BeginAccept, socket.EndAccept, acceptSocket, receiveSize, null);
-        }
-
-        //TODO: Name: ByTimeout?
-        /// <summary>
-        /// Asynchronous operation to accept an incoming connection attempt.
-        /// </summary>
-        /// <param name="socket"></param>
-        /// <param name="acceptSocket">The accepted Socket object. This value may be null.</param>
-        /// <param name="receiveSize">The maximum number of bytes to receive.</param>
-        /// <param name="timeout"></param>
-        /// <returns>A Socket for a newly created connection.</returns>
-        /// <exception cref="ArgumentNullException">Throw if socket is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Throw if timeout is out of range.</exception>
-        /// <exception cref="TimeoutException">Throw exception if the method processing takes too long.</exception>
-        public static Task<Socket> AcceptAsyncByTimeout (Socket socket, Socket acceptSocket, int receiveSize, int timeout) {
-            //Validation
-            if (socket == null)
-                throw new ArgumentNullException (nameof (socket));
-            if (!IsTimeoutValid (timeout)) throw new ArgumentOutOfRangeException (nameof (timeout));
-
-            var task = AcceptAsync (socket, acceptSocket, receiveSize);
-            return TaskUtility.WaitAsync (task, timeout);
         }
 
         #endregion
