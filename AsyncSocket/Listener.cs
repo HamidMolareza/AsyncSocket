@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AsyncSocket.Exceptions;
+using AsyncSocket.Utility;
 
 //TODO: Unit Test
 
@@ -79,6 +80,8 @@ namespace AsyncSocket {
         }
 
         #endregion
+
+        private List<Task> _listenerTasks;
 
         #region ReceiveTimeout
 
@@ -155,39 +158,12 @@ namespace AsyncSocket {
             _cancellationThreads = new CancellationTokenSource ();
             IsStart = true;
 
-            var tasks = new List<Task> (NumOfThreads);
+            _listenerTasks = new List<Task> (NumOfThreads);
             for (var i = 0; i < NumOfThreads; i++) {
-                tasks.Add (Task.Run (StartListening));
+                _listenerTasks.Add (Task.Run (StartListening));
             }
 
-            EnsureAllTasksAreRunOrComplete (tasks);
-        }
-
-        private static void EnsureAllTasksAreRunOrComplete (List<Task> tasks) {
-            foreach (var task in tasks) {
-                var isRunOrComplete = false;
-                do {
-                    switch (task.Status) {
-                        case TaskStatus.Canceled:
-                        case TaskStatus.Faulted:
-                        case TaskStatus.RanToCompletion:
-                        case TaskStatus.Running:
-                            isRunOrComplete = true;
-                            break;
-                        case TaskStatus.Created:
-                        case TaskStatus.WaitingForActivation:
-                        case TaskStatus.WaitingForChildrenToComplete:
-                        case TaskStatus.WaitingToRun:
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException (nameof (tasks));
-                    }
-                    if (isRunOrComplete)
-                        break;
-
-                    Task.Delay (5).Wait ();
-                } while (true);
-            }
+            TaskUtility.EnsureAllTasksAreStable (_listenerTasks, false, true, false);
         }
 
         /// <summary>
@@ -200,7 +176,8 @@ namespace AsyncSocket {
             IsStart = false;
             _cancellationThreads.Cancel ();
 
-            //TODO: Add task delay for ensure all threads are stop? or another good way.
+            TaskUtility.EnsureAllTasksAreStable (_listenerTasks, true, false, false);
+            _listenerTasks = null;
         }
 
         #endregion
