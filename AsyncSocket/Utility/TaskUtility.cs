@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AsyncSocket.Utility {
@@ -61,5 +62,35 @@ namespace AsyncSocket.Utility {
         }
 
         #endregion
+
+        public static void EnsureAllTasksAreStable (List<Task> tasks, bool stop, bool running, bool createdOrWaiting) {
+            foreach (var task in tasks) {
+                var flag = false;
+                do {
+                    switch (task.Status) {
+                        case TaskStatus.Canceled:
+                        case TaskStatus.Faulted:
+                        case TaskStatus.RanToCompletion:
+                            flag = stop;
+                            break;
+                        case TaskStatus.Running:
+                            flag = running;
+                            break;
+                        case TaskStatus.Created:
+                        case TaskStatus.WaitingForActivation:
+                        case TaskStatus.WaitingForChildrenToComplete:
+                        case TaskStatus.WaitingToRun:
+                            flag = createdOrWaiting;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException (nameof (tasks));
+                    }
+                    if (flag)
+                        break;
+
+                    Task.Delay (5).Wait ();
+                } while (true);
+            }
+        }
     }
 }
