@@ -284,28 +284,17 @@ namespace AsyncSocket {
                         //ReceiveAsync
                         var data = TaskUtility.Wait (BaseSocket.ReceiveAsync (localSocket, Encode, ReceiveTimeout), _cancellationThreads.Token);
 
-                        //TODO: Refactor - Add utility
-                        //TODO: Test this approach.
-                        var mainHandlerTask = new Task (() => MainHandlerAsync (localSocket, data));
-                        mainHandlerTask.RunSynchronously ();
-                        mainHandlerTask.Wait (_cancellationThreads.Token);
+                        //MainHandler
+                        TaskUtility.RunSynchronously (() => MainHandlerAsync (localSocket, data), _cancellationThreads.Token);
                     } catch (OperationCanceledException) {
                         return;
                     } catch (ObjectDisposedException) {
                         return;
                     } catch (TimeoutException te) {
-                        //TODO: Refactor - Add utility
-                        //TODO: Test this approach.
-                        var timeoutTask = new Task (() => TimeoutExceptionHandler (localSocket, te));
-                        timeoutTask.RunSynchronously ();
-                        timeoutTask.Wait (_cancellationThreads.Token);
+                        TaskUtility.RunSynchronously (() => TimeoutExceptionHandler (localSocket, te), _cancellationThreads.Token);
 
                     } catch (Exception e) {
-                        //TODO: Refactor - Add utility
-                        //TODO: Test this approach.
-                        var unexpectedHandlerTask = new Task (() => UnExpectedExceptionHandler (localSocket, e));
-                        unexpectedHandlerTask.RunSynchronously ();
-                        unexpectedHandlerTask.Wait (_cancellationThreads.Token);
+                        TaskUtility.RunSynchronously (() => UnExpectedExceptionHandler (localSocket, e), _cancellationThreads.Token);
 
                     } finally {
                         if (localSocket != null) {

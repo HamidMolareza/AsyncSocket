@@ -98,5 +98,11 @@ namespace AsyncSocket.Utility {
                 } while (true);
             }
         }
+
+        public static void RunSynchronously (Action action, CancellationToken cancellationToken) {
+            var mainHandlerTask = new Task (action);
+            mainHandlerTask.RunSynchronously ();
+            mainHandlerTask.Wait (cancellationToken);
+        }
     }
 }
