@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AsyncSocket.Utility {
@@ -62,6 +63,11 @@ namespace AsyncSocket.Utility {
         }
 
         #endregion
+
+        public static T Wait<T> (Task<T> task, CancellationToken cancellationToken) {
+            task.Wait (cancellationToken);
+            return task.Result;
+        }
 
         public static void EnsureAllTasksAreStable (List<Task> tasks, bool stop, bool running, bool createdOrWaiting) {
             foreach (var task in tasks) {

@@ -279,16 +279,10 @@ namespace AsyncSocket {
                     Socket localSocket = null;
                     try {
                         //AcceptAsync
-                        //TODO: Refactor - Add utility?
-                        var acceptTask = BaseSocket.AcceptAsync (ListenerSocket);
-                        acceptTask.Wait (_cancellationThreads.Token);
-                        localSocket = acceptTask.Result;
+                        localSocket = TaskUtility.Wait (BaseSocket.AcceptAsync (ListenerSocket), _cancellationThreads.Token);
 
                         //ReceiveAsync
-                        //TODO: Refactor - Add utility?
-                        var receiveTask = BaseSocket.ReceiveAsync (localSocket, Encode, ReceiveTimeout);
-                        receiveTask.Wait (_cancellationThreads.Token);
-                        var data = receiveTask.Result;
+                        var data = TaskUtility.Wait (BaseSocket.ReceiveAsync (localSocket, Encode, ReceiveTimeout), _cancellationThreads.Token);
 
                         //TODO: Refactor - Add utility
                         //TODO: Test this approach.
