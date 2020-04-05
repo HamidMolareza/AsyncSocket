@@ -37,7 +37,7 @@ namespace AsyncSocket {
         #region Port
 
         private int _port;
-        public const int DefaultPort = 11000;
+        protected const int DefaultPort = 11000;
 
         /// <summary>
         /// The port number for the remote device. (Http: 80, HTTPS: 443)
@@ -59,7 +59,7 @@ namespace AsyncSocket {
         #region NumOfThreads
 
         private int _numOfThreads;
-        public const int DefaultNumOfThreads = 25;
+        protected const int DefaultNumOfThreads = 25;
         public const int MinimumThreads = 1;
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace AsyncSocket {
         /// <summary>
         /// Default receive timeout base milliseconds.
         /// </summary>
-        public const int DefaultReceiveTimeout = 5000; //ms
+        protected const int DefaultReceiveTimeout = 5000; //ms
 
         /// <summary>
         /// Receive timeout base milliseconds. | To set property, the listener must be stop.
@@ -124,12 +124,12 @@ namespace AsyncSocket {
         public static readonly IPHostEntry IpHostInfo = Dns.GetHostEntry (Dns.GetHostName ());
 
         //TODO: Check on windows and linux
-        public static readonly IPAddress IpAddress = IpHostInfo.AddressList[0];
+        public static readonly IPAddress IpAddress = OperatingSystemUtility.IsLinux ? IpHostInfo.AddressList[0] : IpHostInfo.AddressList[2];
 
         /// <summary>
         /// TCP/IP socket
         /// </summary>
-        public readonly Socket ListenerSocket = new Socket (IpAddress.AddressFamily,
+        protected readonly Socket ListenerSocket = new Socket (IpAddress.AddressFamily,
             SocketType.Stream, ProtocolType.Tcp);
 
         #endregion
@@ -272,7 +272,6 @@ namespace AsyncSocket {
             _port = port;
         }
 
-        //TODO: Refactor (Try-Catch)
         private void StartListening () {
             while (IsStart) {
                 try {
@@ -291,9 +290,11 @@ namespace AsyncSocket {
                     } catch (ObjectDisposedException) {
                         return;
                     } catch (TimeoutException te) {
+                        //TimeoutExceptionHandler
                         TaskUtility.RunSynchronously (() => TimeoutExceptionHandler (localSocket, te), _cancellationThreads.Token);
 
                     } catch (Exception e) {
+                        //UnExpectedExceptionHandler
                         TaskUtility.RunSynchronously (() => UnExpectedExceptionHandler (localSocket, e), _cancellationThreads.Token);
 
                     } finally {
@@ -307,7 +308,7 @@ namespace AsyncSocket {
                 } catch (ObjectDisposedException) {
                     return;
                 } catch (Exception) {
-                    //TODO: Ignore??
+                    // Ignore
                 }
             }
         }
