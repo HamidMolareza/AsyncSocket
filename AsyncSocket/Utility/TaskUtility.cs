@@ -71,8 +71,8 @@ namespace AsyncSocket.Utility {
 
         public static void EnsureAllTasksAreStable (List<Task> tasks, bool stop, bool running, bool createdOrWaiting) {
             foreach (var task in tasks) {
-                var flag = false;
                 do {
+                    bool flag;
                     switch (task.Status) {
                         case TaskStatus.Canceled:
                         case TaskStatus.Faulted:

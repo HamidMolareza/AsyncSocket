@@ -1,35 +1,36 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AsyncSocket;
 
 namespace Console_AsyncSocket {
     public class Program {
         public static void Main (string[] args) {
             try {
                 InnerMain ();
-            } catch (System.Exception e) {
-                System.Console.WriteLine ("\n\n");
-                System.Console.WriteLine (e);
+            } catch (Exception e) {
+                Console.WriteLine ("\n\n");
+                Console.WriteLine (e);
             }
         }
 
         private static void InnerMain () {
             using (var myListener = new MyListener (numOfThreads: 10)) {
-                System.Console.WriteLine ($"{MyListener.IpAddress}:{myListener.Port}");
+                Console.WriteLine ($"{Listener.IpAddress}:{myListener.Port}");
 
-                System.Console.Write ("Starting...");
+                Console.Write ("Starting...");
                 myListener.Start ();
-                System.Console.WriteLine ("\nStart.");
+                Console.WriteLine ("\nStart.");
 
                 Handle (myListener).Wait ();
 
-                System.Console.Write ("Press any key to stop...");
+                Console.Write ("Press any key to stop...");
                 Console.ReadKey ();
-                System.Console.Write ("\nStopping...");
+                Console.Write ("\nStopping...");
                 myListener.Stop ();
-                System.Console.WriteLine ("\nStop.");
+                Console.WriteLine ("\nStop.");
             }
 
-            System.Console.Write ("Press any key to exit...");
+            Console.Write ("Press any key to exit...");
             Console.ReadKey ();
         }
 

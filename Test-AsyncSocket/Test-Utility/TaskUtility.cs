@@ -11,7 +11,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [Theory]
         [InlineData (5, 20)]
         [InlineData (10, 1000)]
-        public async Task WaitAsyncT_LessThanTimoutTakesLong_ReturnAnswer (int delay, int timeout) {
+        public async Task WaitAsyncT_LessThanTimeoutTakesLong_ReturnAnswer (int delay, int timeout) {
             var task = Task.Run (() => Sum (2, 3, delay));
             var actual = await AsyncSocket.Utility.TaskUtility.WaitAsync (task, timeout);
             Assert.Equal (5, actual);
@@ -20,7 +20,7 @@ namespace Test_AsyncSocket.Test_Utility {
         [Theory]
         [InlineData (20, 5)]
         [InlineData (10000, 10)]
-        public void WaitAsyncT_MoreThanTimoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
+        public void WaitAsyncT_MoreThanTimeoutTakesLong_ThrowTimeoutException (int delay, int timeout) {
             var task = Task.Run (() => Sum (2, 3, delay));
             Assert.ThrowsAsync<TimeoutException> (() => AsyncSocket.Utility.TaskUtility.WaitAsync (task, timeout));
         }
