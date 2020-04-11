@@ -620,12 +620,8 @@ namespace AsyncSocket {
             var data = new MemoryStream (defaultCapacity);
 
             while (socket.Available > 0) {
-                //TODO: Is offset required?
-                // var offset = data.Length;
-
                 var buffer = new byte[defaultCapacity];
 
-                //TODO: If offset is required, set offset to method.
                 var bytesRec = await ReceiveAsync (socket, buffer, 0, defaultCapacity, socketFlags);
 
                 await data.WriteAsync (buffer, 0, bytesRec);

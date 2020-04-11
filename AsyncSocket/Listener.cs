@@ -189,7 +189,7 @@ namespace AsyncSocket {
         /// </summary>
         /// <param name="handler"></param>
         /// <param name="data">Request data.</param>
-        protected abstract void MainHandlerAsync (Socket handler, string data);
+        protected abstract void MainHandler (Socket handler, string data);
 
         /// <summary>
         /// When the request takes too long, this method will be called.
@@ -284,7 +284,7 @@ namespace AsyncSocket {
                         var data = TaskUtility.Wait (BaseSocket.ReceiveAsync (localSocket, Encode, ReceiveTimeout), _cancellationThreads.Token);
 
                         //MainHandler
-                        TaskUtility.RunSynchronously (() => MainHandlerAsync (localSocket, data), _cancellationThreads.Token);
+                        TaskUtility.RunSynchronously (() => MainHandler (localSocket, data), _cancellationThreads.Token);
                     } catch (OperationCanceledException) {
                         return;
                     } catch (ObjectDisposedException) {
