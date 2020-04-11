@@ -3,10 +3,10 @@ using System.Net.Sockets;
 using System.Text;
 using AsyncSocket;
 
-namespace Console_AsyncSocket {
-    public class MyListener : Listener {
+namespace Listener {
+    public class MyListener : AsyncSocket.Listener {
         public MyListener (int port = 11000, int numOfThreads = 25, int receiveTimeout = 5000) : base (port, numOfThreads, receiveTimeout) { }
-        protected override void MainHandlerAsync (Socket handler, string data) {
+        protected override void MainHandler (Socket handler, string data) {
             BaseSocket.SendAsync (handler, data, Encoding.UTF8).Wait ();
         }
 
